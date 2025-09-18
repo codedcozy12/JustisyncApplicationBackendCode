@@ -1,0 +1,48 @@
+﻿using Application.Interfaces.Repositories;
+using Domain.Entities;
+using Infrastructures.Persistence.Context;
+using Microsoft.EntityFrameworkCore;
+
+namespace Infrastructures.Persistence.Repository
+{
+    public class CourtRepository : ICourtRepository
+    {
+        private readonly AppDbContext _context;
+        public CourtRepository(AppDbContext context)
+        {
+            _context = context;
+        }
+        public async Task AddAsync(Court court)
+        {
+            await _context.Courts.AddAsync(court);
+        }
+        public async Task<IEnumerable<Court>> GetActiveCourtsAsync()
+        {
+            return await _context.Courts
+                                 .Where(c => c.IsActive)
+                                 .ToListAsync();
+        }
+        public async Task<IEnumerable<Court>> GetAllAsync()
+        {
+            return await _context.Courts.ToListAsync();
+        }
+
+        public async Task<Court?> GetByIdAsync(Guid id)
+        {
+            return await _context.Courts
+                                 .Include(c => c.Registrars)
+                                 .Include(c => c.Judges)
+                                 .FirstOrDefaultAsync(c => c.Id == id);
+        }
+        public async Task<IEnumerable<Court>> GetByRegistrarIdAsync(Guid registrarId)
+        {
+            return await _context.Courts
+                                 .Where(c => c.Registrars.Any(r => r.Id == registrarId))
+                                 .ToListAsync();
+        }
+        public async Task UpdateAsync(Court court)
+        {
+            _context.Courts.Update(court);
+        }
+    }
+}

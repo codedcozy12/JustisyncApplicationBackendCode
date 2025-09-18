@@ -1,0 +1,21 @@
+﻿using System.Security;
+using Domain.Enums;
+
+namespace Domain.Entities
+{
+    public class User : BaseEntities
+    {
+            public required string Username { get; set; }
+            public required string Email { get; set; }
+            public required string PasswordHash { get; set; }
+            public required string FirstName { get; set; }
+            public required string LastName { get; set; }
+            public required string MiddleName { get; set; }
+            public required string PhoneNumber { get; set; }
+            public Role Role { get; set; }
+            public string? ProfilePictureUrl { get; set; }
+            public ICollection<Notification> Notifications { get; set; } = [];
+            public Accountstatus Accountstatus { get; set; }
+            public ICollection<AIConversationSession> AIConversationSessions { get; set; } = [];
+        }
+    }

@@ -1,0 +1,20 @@
+﻿using Application.Dto;
+using FluentValidation;
+
+namespace Application.Validators
+{
+    public class UserLoginRequestValidator : AbstractValidator<UserLoginRequestDto>
+    {
+        public UserLoginRequestValidator()
+        {
+            RuleFor(x => x.Email)
+                .NotEmpty().WithMessage("Email is required.")
+                .EmailAddress().WithMessage("Invalid email format.");
+
+            RuleFor(x => x.Password)
+                .NotEmpty().WithMessage("Password is required.")
+                .MinimumLength(8).WithMessage("Password must be at least 8 characters long.")
+                .Matches("[^a-zA-Z0-9]").WithMessage("Password must contain at least one special character.");
+        }
+    }
+}
