@@ -4,7 +4,7 @@ namespace Application.IService
 {
     public interface IRegistrarService
     {
-       Task<ResponseDto<RegistrarCreateRequestDto>> CreateRegistrarAsync(RegistrarCreateRequestDto request);
+       Task<ResponseDto<Guid>> CreateRegistrarAsync(RegistrarCreateRequestDto request);
         Task<ResponseDto<RegistrarDto>> GetRegistrarByIdAsync(Guid registrarId);
         Task<ResponseDto<IEnumerable<RegistrarDto>>> GetAllRegistrarsAsync();
         Task<RegistrarUpdateRequestDto> UpdateRegistrarAsync(Guid registrarId, RegistrarUpdateRequestDto request);

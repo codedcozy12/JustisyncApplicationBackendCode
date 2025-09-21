@@ -7,6 +7,7 @@ namespace Application.Interfaces.Repositories
         Task<Certificate?> GetByIdAsync(Guid certificateId);
         Task<IEnumerable<Certificate>> GetAllAsync();
         Task AddAsync(Certificate certificate);
+        Task AddRangeAsync(List<Certificate> certificates);
         Task UpdateAsync(Certificate certificate);
         Task DeleteAsync(Guid certificateId);
         Task<IEnumerable<Certificate>> GetByLawyerIdAsync(Guid lawyerId);

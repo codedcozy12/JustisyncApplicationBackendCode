@@ -14,6 +14,7 @@ namespace Domain.Entities
             public required string PhoneNumber { get; set; }
             public Role Role { get; set; }
             public string? ProfilePictureUrl { get; set; }
+            public bool IsEmailConfirmed { get; set; } = false;
             public ICollection<Notification> Notifications { get; set; } = [];
             public Accountstatus Accountstatus { get; set; }
             public ICollection<AIConversationSession> AIConversationSessions { get; set; } = [];

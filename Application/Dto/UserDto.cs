@@ -15,6 +15,7 @@ namespace Application.Dto
         public Role Role { get; set; }
         public string? ProfilePictureUrl { get; set; }
         public Accountstatus Accountstatus { get; set; }
+        public bool IsEmailConfirmed { get; set; }
     }
     public class UserCreateRequestDto
     {

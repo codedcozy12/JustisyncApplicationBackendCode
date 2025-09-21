@@ -13,5 +13,7 @@ namespace Application.IService
         Task<ResponseDto<UserDto>> GetUserByIdAsync(Guid id);
         Task<ResponseDto<UserDto>> GetUserByEmailAsync(string email);
         Task<ResponseDto<PageResponse<UserDto>>> GetAllUsersAsync(PageRequest pageRequest);
+        Task<ResponseDto<string>> SendEmailConfirmationCode(string email);
+        Task<ResponseDto<string>> ConfirmEmailAsync(ConfirmEmailDto confirmEmailDto);
     }
 }

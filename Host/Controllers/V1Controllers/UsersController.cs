@@ -43,8 +43,13 @@ namespace Host.Controllers.V1Controllers
 
             var result = await _userService.LoginAsync(request);
             if (result == null) return Unauthorized("Invalid email or password.");
+            var token = _authService.GenerateJwtToken(result.Data!);
 
-            return Ok(result);
+            return Ok(new
+            {
+                Token = token,
+                User = result
+            });
         }
 
         [SwaggerOperation(Summary = "Request a password reset link by email")]
@@ -139,6 +144,28 @@ namespace Host.Controllers.V1Controllers
             var result = await _userService.UpdateUserAsync(id, request);
             if (result == null) return NotFound("User not found.");
 
+            return Ok(result);
+        }
+        [SwaggerOperation(Summary = "Send email confirmation code to user's email")]
+        [HttpPost("send-email-confirmation-code")]
+        public async Task<IActionResult> SendEmailConfirmationCode([FromBody] string email)
+        {
+            if (string.IsNullOrEmpty(email))
+                return BadRequest("Email is required.");
+            var result = await _userService.SendEmailConfirmationCode(email);
+            if (result == null || !result.IsSuccess)
+                return BadRequest(result?.Message ?? "Failed to send confirmation code.");
+            return Ok(result);
+        }
+        [SwaggerOperation(Summary = "Confirm user's email using the confirmation code")]
+        [HttpPost("confirm-email")]
+        public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmEmailDto confirmEmailDto)
+        {
+            if (confirmEmailDto == null || string.IsNullOrEmpty(confirmEmailDto.Email) || string.IsNullOrEmpty(confirmEmailDto.ConfirmationCode))
+                return BadRequest("Invalid request data.");
+            var result = await _userService.ConfirmEmailAsync(confirmEmailDto);
+            if (result == null || !result.IsSuccess)
+                return BadRequest(result?.Message ?? "Failed to confirm email.");
             return Ok(result);
         }
     }

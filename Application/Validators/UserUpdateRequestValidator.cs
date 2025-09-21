@@ -34,17 +34,17 @@ namespace Application.Validators
                 .WithMessage("Phone number must be valid and contain between 10 and 15 digits.");
 
             RuleFor(x => x.ProfilePictureUrl)
-               .Must(file => file == null || file.Length > 0)
-        .WithMessage("Uploaded file cannot be empty.")
-              .Must(file => file == null || file.Length <= 2 * 1024 * 1024) 
-        .WithMessage("Profile picture must not exceed 2MB.")
-              .Must(file => file == null ||
-               new[] { ".jpg", ".jpeg", ".png" }
-              .Contains(Path.GetExtension(file.FileName).ToLower()))
-              .WithMessage("Only .jpg, .jpeg, or .png files are allowed.")
-             .Must(file => file == null ||
-                    (file.ContentType == "image/jpeg" || file.ContentType == "image/png"))
-                    .WithMessage("Only JPEG or PNG images are allowed.");
+                .Must(file => file == null || file.Length > 0)
+                .WithMessage("Uploaded file cannot be empty.")
+                .Must(file => file == null || file.Length <= 5 * 1024 * 1024) 
+                .WithMessage("Profile picture must not exceed 5MB.")
+                .Must(file => file == null ||
+                 new[] { ".jpg", ".jpeg", ".png" }
+                .Contains(Path.GetExtension(file.FileName).ToLower()))
+                .WithMessage("Only .jpg, .jpeg, or .png files are allowed.")
+                .Must(file => file == null ||
+                 (file.ContentType == "image/jpeg" || file.ContentType == "image/png"))
+                .WithMessage("Only JPEG or PNG images are allowed.");
         }
     }
 }

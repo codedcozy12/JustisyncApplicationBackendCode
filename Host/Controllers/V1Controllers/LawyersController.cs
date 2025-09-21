@@ -71,13 +71,14 @@ namespace Host.Controllers.V1Controllers
             return Ok(result);
         }
         [HttpPost("{lawyerId:guid}/certificates")]
+        [Consumes("multipart/form-data")]
         [SwaggerOperation(
-            Summary = "Upload certificate for lawyer",
-            Description = "Uploads a certificate document for a specific lawyer for verification purposes."
+            Summary = "Upload certificates",
+            Description = "Allows a lawyer to upload multiple certificates for verification."
         )]
-        public async Task<ActionResult<CertificateCreateRequestDto>> UploadCertificate(Guid lawyerId, [FromForm] CertificateCreateRequestDto request)
+        public async Task<IActionResult> UploadCertificatesAsync(Guid lawyerId, [FromForm] CertificateUploadRequestDto requests)
         {
-            var result = await _lawyerService.UploadCertificateAsync(lawyerId, request);
+           var result = await _lawyerService.UploadCertificatesAsync(lawyerId, requests);
             return Ok(result);
         }
         [HttpGet("verified")]
@@ -129,7 +130,7 @@ namespace Host.Controllers.V1Controllers
            Summary = "Update lawyer verification status",
            Description = "Updates the verification status of a lawyer’s account (e.g., Pending, Verified, Rejected)."
        )]
-        public async Task<ActionResult<LawyerUpdateRequestDto>> UpdateVerificationStatus(Guid lawyerId, [FromBody] LawyerUpdateRequestDto status)
+        public async Task<ActionResult> UpdateVerificationStatus(Guid lawyerId, [FromBody] LawyerUpdateVerifcationRequestDto status)
         {
             var result = await _lawyerService.UpdateVerificationStatusAsync(lawyerId, status);
             return Ok(result);

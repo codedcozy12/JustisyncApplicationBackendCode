@@ -74,7 +74,7 @@ namespace Application.Service
                 UniversityName = request.UniversityName,
                 BarMembershipNumber = request.BarMembershipNumber,
                 LawSchoolName = request.LawSchoolName,
-                VerificationStatus = lawyerVerificationStatus.pending
+                VerificationStatus = lawyerVerificationStatus.pending,
             };
 
             for(int i = 0;i < request.CertificateFiles.Count; i++)
@@ -139,7 +139,18 @@ namespace Application.Service
                 BarMembershipNumber = l.BarMembershipNumber,
                 LawSchoolName = l.LawSchoolName,
                 Username = l.User?.Username ?? "Unknown",
-                VerificationStatus = l.VerificationStatus
+                VerificationStatus = l.VerificationStatus,
+                Certificates = l.Certificates?.Select(c => new CertificateDto
+                {
+                    FilePath = c.FilePath,
+                    CertificateType = c.CertificateType,
+                    Id = c.Id,
+                    LawyerId = c.LawyerId,
+                    LawyerName = l.User != null ? $"{l.User.FirstName} {l.User.LastName}" : "Unknown",
+                    UploadedAt = c.UploadedAt
+                }).ToList() ?? new List<CertificateDto>(),
+                Id = l.Id,
+                Email = l.User?.Email ?? "Unknown"
             }).ToList();
             return new ResponseDto<IEnumerable<LawyerDto>>
             {
@@ -169,7 +180,8 @@ namespace Application.Service
                 BarMembershipNumber = l.BarMembershipNumber,
                 LawSchoolName = l.LawSchoolName,
                 Username = l.User?.Username ?? "Unknown",
-                VerificationStatus = l.VerificationStatus
+                VerificationStatus = l.VerificationStatus,
+
             }).ToList();
             return new ResponseDto<IEnumerable<LawyerDto>>
             {
@@ -204,8 +216,14 @@ namespace Application.Service
                 Certificates = lawyer.Certificates?.Select(c => new CertificateDto
                 {
                     FilePath = c.FilePath,
-                    CertificateType = c.CertificateType
-                }).ToList() ?? new List<CertificateDto>()
+                    CertificateType = c.CertificateType,
+                    Id = c.Id,
+                    LawyerId = c.LawyerId,
+                    LawyerName = lawyer.User != null ? $"{lawyer.User.FirstName} {lawyer.User.LastName}" : "Unknown",
+                    UploadedAt = c.UploadedAt
+                }).ToList() ?? new List<CertificateDto>(),
+                Id = lawyer.Id,
+                Email = lawyer.User?.Email ?? "Unknown"
             };
 
             return new ResponseDto<LawyerDto>
@@ -236,7 +254,18 @@ namespace Application.Service
                 BarMembershipNumber = lawyer.BarMembershipNumber,
                 LawSchoolName = lawyer.LawSchoolName,
                 Username = lawyer.User?.Username ?? "Unknown",
-                VerificationStatus = lawyer.VerificationStatus
+                VerificationStatus = lawyer.VerificationStatus,
+                Certificates = lawyer.Certificates?.Select(c => new CertificateDto
+                {
+                    FilePath = c.FilePath,
+                    CertificateType = c.CertificateType,
+                    Id = c.Id,
+                    LawyerId = c.LawyerId,
+                    LawyerName = lawyer.User != null ? $"{lawyer.User.FirstName} {lawyer.User.LastName}" : "Unknown",
+                    UploadedAt = c.UploadedAt
+                }).ToList() ?? new List<CertificateDto>(),
+                Id = lawyer.Id,
+                Email = lawyer.User?.Email ?? "Unknown"
             };
             return new ResponseDto<LawyerDto>
             {
@@ -266,7 +295,18 @@ namespace Application.Service
                 BarMembershipNumber = l.BarMembershipNumber,
                 LawSchoolName = l.LawSchoolName,
                 Username = l.User?.Username ?? "Unknown",
-                VerificationStatus = l.VerificationStatus
+                VerificationStatus = l.VerificationStatus,
+                Certificates = l.Certificates?.Select(c => new CertificateDto
+                {
+                    FilePath = c.FilePath,
+                    CertificateType = c.CertificateType,
+                    Id = c.Id,
+                    LawyerId = c.LawyerId,
+                    LawyerName = l.User != null ? $"{l.User.FirstName} {l.User.LastName}" : "Unknown",
+                    UploadedAt = c.UploadedAt
+                }).ToList() ?? new List<CertificateDto>(),
+                Id = l.Id,
+                Email = l.User?.Email ?? "Unknown"
             }).ToList();
             return new ResponseDto<IEnumerable<LawyerDto>>
             {
@@ -275,7 +315,7 @@ namespace Application.Service
                 Message = "Lawyers retrieved successfully"
             };
         }
-        public async Task<LawyerUpdateRequestDto> UpdateLawyerAsync(Guid lawyerId, LawyerUpdateRequestDto request)
+        public async Task<ResponseDto<string>> UpdateLawyerAsync(Guid lawyerId, LawyerUpdateRequestDto request)
         {
             if (request == null)
             {
@@ -295,9 +335,9 @@ namespace Application.Service
             await _lawyerRepository.UpdateAsync(lawyer);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Lawyer with Id: {LawyerId} updated successfully", lawyerId);
-            return request;
+            return ResponseDto<string>.Success($"Lawyer update is successful");
         }
-        public async Task<LawyerUpdateRequestDto> UpdateVerificationStatusAsync(Guid lawyerId, LawyerUpdateRequestDto request)
+        public async Task<ResponseDto<string>> UpdateVerificationStatusAsync(Guid lawyerId, LawyerUpdateVerifcationRequestDto request)
         {
             var lawyer = await _lawyerRepository.GetByIdAsync(lawyerId);
             if (lawyer == null)
@@ -306,41 +346,62 @@ namespace Application.Service
                 return null;
             }
             lawyer.VerificationStatus = request.VerificationStatus;
+
             await _lawyerRepository.UpdateAsync(lawyer);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Lawyer with Id: {LawyerId} verification status updated to {Status}", lawyerId, request.VerificationStatus);
-            return request;
+            return ResponseDto<string>.Success($"Lawyer Verification for {lawyer.User.FirstName} was successful \nStatus {request.VerificationStatus}");
         }
-        public async Task<CertificateCreateRequestDto> UploadCertificateAsync(Guid lawyerId, CertificateCreateRequestDto request)
+        public async Task<ResponseDto<string>> UploadCertificatesAsync(Guid lawyerId, CertificateUploadRequestDto requests)
         {
-            if (request == null)
+            if (requests == null || !requests.Files.Any())
             {
-                _logger.LogWarning("Certificate upload request is null");
+                _logger.LogWarning("Certificate upload request list is null or empty");
                 return null;
             }
+
             var lawyer = await _lawyerRepository.GetByIdAsync(lawyerId);
             if (lawyer == null)
             {
                 _logger.LogWarning("Lawyer with Id: {LawyerId} not found", lawyerId);
                 return null;
             }
-            var filePath = _uploadService.UploadFile(request.File);
-            if (string.IsNullOrEmpty(filePath))
+
+            var uploadedCertificates = new List<Certificate>();
+
+            foreach (var request in requests.Files)
             {
-                _logger.LogError("Failed to upload certificate file");
+                var filePath = _uploadService.UploadFile(request);
+                if (string.IsNullOrEmpty(filePath))
+                {
+                    _logger.LogError("Failed to upload certificate file for request {CertificateType}", request.ContentType);
+                    continue;
+                }
+
+                var certificate = new Certificate
+                {
+                    FilePath = filePath,
+                    LawyerId = lawyerId
+                };
+
+                uploadedCertificates.Add(certificate);
+            }
+
+            for (int i = 0; i < uploadedCertificates.Count; i++)
+            {
+                uploadedCertificates[i].CertificateType = requests.CertificateType[i];
+            }
+
+            if (!uploadedCertificates.Any())
+            {
+                _logger.LogWarning("No certificates were successfully uploaded for Lawyer with Id: {LawyerId}", lawyerId);
                 return null;
             }
-            var certificate = new Certificate
-            {
-                FilePath = filePath,
-                CertificateType = request.CertificateType,
-                LawyerId = lawyerId
-            };
-            lawyer.Certificates.Add(certificate);
-            await _lawyerRepository.UpdateAsync(lawyer);
+            await _certificateRepository.AddRangeAsync(uploadedCertificates);
             await _unitOfWork.SaveChangesAsync();
-            _logger.LogInformation("Certificate uploaded successfully for Lawyer with Id: {LawyerId}", lawyerId);
-            return request;
+
+            _logger.LogInformation("{Count} certificates uploaded successfully for Lawyer with Id: {LawyerId}", uploadedCertificates.Count, lawyerId);
+            return ResponseDto<string>.Success($"{uploadedCertificates.Count} certificates uploaded successfully");
         }
         public async Task<ResponseDto<string>> VerifyCertificateAsync(Guid lawyerId, CertificateUpdateRequestDto request)
         {
@@ -378,8 +439,6 @@ namespace Application.Service
 
             return ResponseDto<string>.Success("Lawyer Verification Was Successful");
         }
-
-
 
         public async Task<ResponseDto<PageResponse<LawyerDto>>> GetPendingLawyers(PageRequest pageRequest)
         {
@@ -502,7 +561,7 @@ namespace Application.Service
             await _emailService.SendEmailAsync(email, subject, html);
         }
 
-       
+
         string lawyerApprovedEmailHtml = @"
 <!DOCTYPE html>
 <html>

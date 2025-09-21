@@ -15,7 +15,6 @@ namespace Infrastructures.Persistence.Repository
         public async Task AddAsync(Registrar registrar)
         {
             await _context.Registrars.AddAsync(registrar);
-            await _context.SaveChangesAsync();
         }
         public async Task DeleteAsync(Guid registrarId)
         {
@@ -23,7 +22,6 @@ namespace Infrastructures.Persistence.Repository
             if (registrar != null)
             {
                 _context.Registrars.Remove(registrar);
-                await _context.SaveChangesAsync();
             }
         }
         public async Task<IEnumerable<Registrar>> GetAllAsync()
@@ -55,7 +53,6 @@ namespace Infrastructures.Persistence.Repository
         public async Task UpdateAsync(Registrar registrar)
         {
             _context.Registrars.Update(registrar);
-            await _context.SaveChangesAsync();
         }
     }
 }

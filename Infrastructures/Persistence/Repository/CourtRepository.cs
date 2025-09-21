@@ -26,7 +26,6 @@ namespace Infrastructures.Persistence.Repository
         {
             return await _context.Courts.ToListAsync();
         }
-
         public async Task<Court?> GetByIdAsync(Guid id)
         {
             return await _context.Courts

@@ -42,4 +42,9 @@ namespace Application.Dto
         public List<CertificateUpdateRequestDto> Certificates { get; set; } = new();
         public LawyerSpecialization LawyerSpecialization { get; set; }
     }
+    public class LawyerUpdateVerifcationRequestDto
+    {
+        public Guid LwayerId { get; set; }
+        public lawyerVerificationStatus VerificationStatus { get; set; }
+    }
 }

@@ -94,7 +94,9 @@ namespace Application.Service
                 MiddleName = user.MiddleName,
                 PhoneNumber = user.PhoneNumber,
                 Username = user.Username,
-                ProfilePictureUrl = user.ProfilePictureUrl
+                ProfilePictureUrl = user.ProfilePictureUrl,
+                Accountstatus = user.Accountstatus,
+                IsEmailConfirmed = user.IsEmailConfirmed
             };
             _logger.LogInformation("User with email {Email} retrieved successfully.", email);
             return ResponseDto<UserDto>.Success(userDto);
@@ -112,7 +114,9 @@ namespace Application.Service
                 MiddleName = user.MiddleName,
                 PhoneNumber = user.PhoneNumber,
                 Username = user.Username,
-                ProfilePictureUrl = user.ProfilePictureUrl
+                ProfilePictureUrl = user.ProfilePictureUrl,
+                Accountstatus = user.Accountstatus,
+                IsEmailConfirmed = user.IsEmailConfirmed
             }).ToList();
             var pageResponse = new PageResponse<UserDto>
             {
@@ -143,7 +147,9 @@ namespace Application.Service
                 MiddleName = user.MiddleName,
                 PhoneNumber = user.PhoneNumber,
                 Username = user.Username,
-                ProfilePictureUrl = user.ProfilePictureUrl
+                ProfilePictureUrl = user.ProfilePictureUrl,
+                Accountstatus = user.Accountstatus,
+                IsEmailConfirmed = user.IsEmailConfirmed
             };
             _logger.LogInformation("User with Id {UserId} retrieved successfully.", id);
             return ResponseDto<UserDto>.Success(userDto);
@@ -267,7 +273,76 @@ namespace Application.Service
             _logger.LogInformation("User with Id {UserId} updated successfully.", id);
             return request;
         }
-    private async Task SendWelcomeMessage(string email, string name)
+        public async Task<ResponseDto<string>> SendEmailConfirmationCode(string email)
+        {
+            var user = await _userRepository.GetByEmailAsync(email);
+            if (user == null)
+            {
+                _logger.LogWarning("Email confirmation failed. Email {Email} not found.", email);
+                return ResponseDto<string>.Fail("User not found.");
+            }
+
+            string code = new Random().Next(100000, 999999).ToString();
+            string cacheKey = $"EmailConfirmationToken:{email}";
+            await _cacheService.AddAsync(cacheKey, code, TimeSpan.FromMinutes(15));
+            await SendVerificationEmail(email, code, user.FirstName);
+            _logger.LogInformation("Email confirmation code sent to email: {Email}", email);
+            return ResponseDto<string>.Success("Verification code sent to email.");
+        }
+
+        public async Task<ResponseDto<string>> ConfirmEmailAsync(ConfirmEmailDto confirmEmailDto)
+        {
+            string cacheKey = $"EmailConfirmationToken:{confirmEmailDto.Email}";
+            var code = await _cacheService.GetAsync<string>(cacheKey);
+            if (code == null || code != confirmEmailDto.ConfirmationCode)
+            {
+                _logger.LogWarning("Invalid or expired email confirmation code for email: {Email}", confirmEmailDto.Email);
+                return ResponseDto<string>.Fail("Invalid or expired confirmation code.");
+            }
+            var user = await _userRepository.GetByEmailAsync(confirmEmailDto.Email);
+            if (user == null)
+            {
+                _logger.LogWarning("Email confirmation failed. Email {Email} not found.", confirmEmailDto.Email);
+                return ResponseDto<string>.Fail("User not found.");
+            }
+            user.IsEmailConfirmed = true;
+            await _unitOfWork.SaveChangesAsync();
+
+            return ResponseDto<string>.Success("Email Confirmed Successfully");
+        }
+
+        private async Task SendVerificationEmail(string email,string code,string name)
+        {
+            string emailTitle = "Verify Your Email - JustiSync";
+
+            string body = $@"
+<!doctype html>
+<html lang=""en"">
+  <head>
+    <meta charset=""utf-8""/>
+    <title>{emailTitle}</title>
+  </head>
+  <body style=""font-family:Arial,sans-serif;background-color:#f9f9f9;padding:20px;"">
+    <div style=""max-width:600px;margin:auto;background:white;padding:30px;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.1);"">
+      <h2 style=""color:#0b3d91;text-align:center;"">{emailTitle}</h2>
+      <p>Hi {name},</p>
+      <p>Thanks for signing up with <b>JustiSync</b>. Please use the code below to verify your email:</p>
+
+      <div style=""text-align:center;margin:20px 0;"">
+        <h1 style=""font-size:32px;letter-spacing:5px;color:#0b3d91;"">{code}</h1>
+      </div>
+
+      <p>If you didn’t create an account, you can safely ignore this email.</p>
+      <br/>
+      <p style=""color:#888;"">The JustiSync Team</p>
+    </div>
+  </body>
+</html>";
+
+            await _emailService.SendEmailAsync(email, emailTitle, body);
+
+        }
+        private async Task SendWelcomeMessage(string email, string name)
     {
         var safeName = WebUtility.HtmlEncode(name);
 
@@ -395,5 +470,7 @@ namespace Application.Service
     </html>";
             await _emailService.SendEmailAsync(email, subject, message);
         }
+
+       
     }
 }

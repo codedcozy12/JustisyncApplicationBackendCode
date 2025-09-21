@@ -16,6 +16,12 @@ namespace Infrastructures.Persistence.Repository
         {
             await _context.Certificates.AddAsync(certificate);
         }
+
+        public async Task AddRangeAsync(List<Certificate> certificates)
+        {
+            await _context.Certificates.AddRangeAsync(certificates);
+        }
+
         public async Task DeleteAsync(Guid certificateId)
         {
             var certificate = await _context.Certificates.FindAsync(certificateId);

@@ -19,6 +19,7 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
 
             builder.Property(r => r.CourtId)
                    .IsRequired();
+
             builder.HasOne(r => r.User)
                    .WithMany() 
                    .HasForeignKey(r => r.UserId)

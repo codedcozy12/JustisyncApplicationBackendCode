@@ -23,7 +23,7 @@ namespace Application.Dto
         public string Password { get; set; } = default!;
         public string FirstName { get; set; } = default!;
         public string LastName { get; set; } = default!;
-        public string? MiddleName { get; set; } = default!;
+        public string MiddleName { get; set; } = default!;
         public string PhoneNumber { get; set; } = default!;
         public IFormFile? ProfilePictureUrl { get; set; }
         public Guid CourtId { get; set; }

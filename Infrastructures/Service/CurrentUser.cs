@@ -12,7 +12,6 @@ namespace Application.Service
         {
             _http = http;
         }
-
         public Guid? GetCurrentUserId()
         {
             var id = _http.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;

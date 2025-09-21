@@ -5,7 +5,7 @@ namespace Application.Validators
 {
     public class CertificateUpdateRequestValidator : AbstractValidator<CertificateUpdateRequestDto>
     {
-        public CertificateUpdateRequestValidator() 
+        public CertificateUpdateRequestValidator()
         {
             RuleFor(x => x.IsVerified)
             .NotNull().WithMessage("Verification status must be provided.");

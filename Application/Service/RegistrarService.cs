@@ -22,10 +22,11 @@ namespace Application.Service
         private readonly IEmailService _emailService;
         private readonly IUploadService _uploadService;
         private readonly ICacheService _cacheService;
-        public RegistrarService(IRegistrarRepository registrarRepository, IUnitOfWork unitOfWork, ILogger<RegistrarService> logger, IUploadService uploadService, IEmailService emailService, ICacheService cacheService)
+        public RegistrarService(IRegistrarRepository registrarRepository, IUserRepository userRepository, IUnitOfWork unitOfWork, ILogger<RegistrarService> logger, IUploadService uploadService, IEmailService emailService, ICacheService cacheService)
         {
             _registrarRepository = registrarRepository;
             _unitOfWork = unitOfWork;
+            _userRepository = userRepository;
             _logger = logger;
             _emailService = emailService;
             _uploadService = uploadService;
@@ -48,19 +49,25 @@ namespace Application.Service
                 CourtId = courtId
             };
         }
-        public async Task<ResponseDto<RegistrarCreateRequestDto>> CreateRegistrarAsync(RegistrarCreateRequestDto request)
+        public async Task<ResponseDto<Guid>> CreateRegistrarAsync(RegistrarCreateRequestDto request)
         {
             if (request == null)
             {
                 _logger.LogWarning("Registrar creation request is null");
                 return null;
             }
-            var existingRegistrar = await _userRepository.GetByEmailAsync(request.Email);
-            if (existingRegistrar != null)
+            var existingUser = await _userRepository.GetByEmailAsync(request.Email);
+            if (existingUser != null)
             {
-                _logger.LogWarning("Registrar with Email: {Email} already exists", request.Email);
-                return null;
+                _logger.LogWarning("Lawyer with Email: {Email} already exists", request.Email);
+                return ResponseDto<Guid>.Fail("Lawyer with Email: {Email} already exists");
             }
+            //var existingRegistrar = await _userRepository.GetByEmailAsync(request.Email);
+            //if (existingRegistrar != null)
+            //{
+            //    _logger.LogWarning("Registrar with Email: {Email} already exists", request.Email);
+            //    return ResponseDto<Guid>.Fail("Registrar with Email: {Email} already exists");
+            //}
             var user = new User
             {
                 Email = request.Email,
@@ -81,12 +88,13 @@ namespace Application.Service
             var registrar = new Registrar
             {
                 CourtId = request.CourtId,
+                UserId = user.Id
             };
-            await _registrarRepository.AddAsync(registrar);
             await _userRepository.AddAsync(user);
+            await _registrarRepository.AddAsync(registrar);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Registrar with Email: {Email} created successfully", request.Email);
-            return ResponseDto<RegistrarCreateRequestDto>.Success(request, "Registered Successfully");
+            return ResponseDto<Guid>.Success(user.Id, "Registered Successfully");
         }
 
         public async Task<bool> DeleteRegistrarAsync(Guid registrarId)

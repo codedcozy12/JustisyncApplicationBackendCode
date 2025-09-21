@@ -22,4 +22,10 @@ namespace Application.Dto
         public bool IsVerified { get; set; }
         public Guid? VerifiedByUserId { get; set; }
     }
+    public class CertificateUploadRequestDto
+    {
+        public List<IFormFile> Files { get; set; } = new List<IFormFile>();
+        public List<string> CertificateType { get; set; } = default!;
+        public Guid LawyerId { get; set; }
+    }
 }
