@@ -13,9 +13,9 @@ namespace Application.Dto
     }
     public class CertificateCreateRequestDto
     {
-        public string CertificateType { get; set; } = default!;
-        public IFormFile File { get; set; } = default!;
-        public Guid LawyerId { get; set; }
+        public required string CertificateType { get; set; } = default!;
+        public required IFormFile File { get; set; } = default!;
+        public required Guid LawyerId { get; set; }
     }
     public class CertificateUpdateRequestDto
     {

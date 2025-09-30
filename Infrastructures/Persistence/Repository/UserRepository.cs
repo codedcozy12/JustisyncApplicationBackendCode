@@ -1,4 +1,5 @@
-﻿using Application.Dto;
+﻿using System.Linq.Expressions;
+using Application.Dto;
 using Application.Interface;
 using Domain.Entities;
 using Infrastructures.Persistence.Context;
@@ -17,6 +18,12 @@ namespace Infrastructures.Persistence.Repository
         {
             await _context.Users.AddAsync(user);
         }
+
+        public async Task<int> CountAsync(Expression<Func<User, bool>> expression)
+        {
+            return await _context.Users.CountAsync(expression);
+        }
+
         public async Task DeleteAsync(Guid userId)
         {
             var user = await _context.Users.FindAsync(userId);
@@ -65,6 +72,11 @@ namespace Infrastructures.Persistence.Repository
                 user.PasswordHash = newPasswordHash;
                 _context.Users.Update(user);
             }
+        }
+
+        public async Task<List<User>> GetAllUsersWithoutPaginationAsync()
+        {
+            return await _context.Users.ToListAsync();
         }
     }
 }

@@ -4,6 +4,7 @@ using Application.Interfaces.Repositories;
 using Application.Interfaces.Service;
 using Application.Interfaces.UnitOfWork;
 using Domain.Entities;
+using Domain.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Service
@@ -17,7 +18,8 @@ namespace Application.Service
         private readonly ICacheService _cacheService;
         private readonly IUploadService _uploadService;
         private readonly IEmailService _emailService;
-        public CertificateService(ICertificateRepository certificateRepository, IUnitOfWork unitOfWork, ILogger<CertificateService> logger, ICacheService cacheService, IUploadService uploadService, IEmailService emailService)
+        private readonly IAuditLogService _auditLogService;
+        public CertificateService(ICertificateRepository certificateRepository, IUnitOfWork unitOfWork, ILogger<CertificateService> logger, ICacheService cacheService, IUploadService uploadService, IEmailService emailService, IAuditLogService auditLogService)
         {
             _certificateRepository = certificateRepository;
             _unitOfWork = unitOfWork;
@@ -25,6 +27,7 @@ namespace Application.Service
             _cacheService = cacheService;
             _uploadService = uploadService;
             _emailService = emailService;
+            _auditLogService = auditLogService;
         }
         public async Task<bool> DeleteCertificateAsync(Guid certificateId)
         {
@@ -148,6 +151,7 @@ namespace Application.Service
             await _certificateRepository.AddAsync(certificate);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Certificate uploaded successfully for Lawyer with Id: {LawyerId}", lawyerId);
+            await _auditLogService.LogActionAsync(lawyer.UserId, "Upload", "Certificate", certificate.Id, $"Uploaded certificate of type {request.CertificateType}",Role.lawyer.ToString());
             return request;
         }
         public async Task<CertificateUpdateRequestDto> VerifyCertificateAsync(Guid certificateId, CertificateUpdateRequestDto request)

@@ -31,12 +31,14 @@ namespace Infrastructures.Persistence.Repository
         {
             return await _context.Lawyers
                                  .Include(l => l.User)
+                                 .Include(l => l.Certificates)
                                  .ToListAsync();
         }
         public async Task<Lawyer?> GetByIdAsync(Guid lawyerId)
         {
             return await _context.Lawyers
                                  .Include(l => l.User)
+                                    .Include(l => l.Certificates)
                                  .FirstOrDefaultAsync(l => l.Id == lawyerId);
         }
         public async Task<IEnumerable<Lawyer>> GetBySpecializationAsync(LawyerSpecialization specialization)
@@ -50,12 +52,14 @@ namespace Infrastructures.Persistence.Repository
         {
             return await _context.Lawyers
                                  .Include(l => l.User)
+                                 .Include (l => l.Certificates)
                                  .FirstOrDefaultAsync(l => l.UserId == userId);
         }
         public async Task<IEnumerable<Lawyer>> GetVerifiedLawyersAsync()
         {
             return await _context.Lawyers
                                  .Include(l => l.User)
+                                 .Include(l => l.Certificates)
                                  .Where(l => l.VerificationStatus == lawyerVerificationStatus.Verified)
                                  .ToListAsync();
         }
@@ -64,6 +68,7 @@ namespace Infrastructures.Persistence.Repository
         {
             var query =  _context.Lawyers
                                  .Include(l => l.User)
+                                 .Include(l => l.Certificates)
                                  .Where(l => l.VerificationStatus == lawyerVerificationStatus.pending);
             var lawyers = await query.OrderByDescending(l => l.DateCreated)
                                .Skip((pageRequest.PageNumber - 1) * pageRequest.PageSize)
@@ -81,6 +86,7 @@ namespace Infrastructures.Persistence.Repository
         {
             var query = _context.Lawyers
                               .Include(l => l.User)
+                              .Include(l => l.Certificates)
                               .Where(exp);
                                 
             var totalRecord = query.Count();
@@ -94,11 +100,24 @@ namespace Infrastructures.Persistence.Repository
                 PageSize = request.PageSize,
             };
         }
-      
         public async Task UpdateAsync(Lawyer lawyer)
         {
             _context.Lawyers.Update(lawyer);
             await Task.CompletedTask;
+        }
+
+        public async Task<bool> CheckIfNumberExist(string number)
+        {
+            return await _context.Lawyers
+                                 .Include(l => l.User)
+                                 .AnyAsync(l => l.User.PhoneNumber == number);
+        }
+
+        public async Task<bool> CheckIfEmailExists(string email)
+        {
+            return await _context.Lawyers
+                                 .Include(l => l.User)
+                                 .AnyAsync(l => l.User.Email == email);
         }
     }
 }

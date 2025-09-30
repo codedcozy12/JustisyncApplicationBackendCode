@@ -16,6 +16,23 @@ namespace Infrastructures.Persistence.Repository
         {
             await _context.Judges.AddAsync(judge);
         }
+
+        public async Task<bool> CheckIfEmailExists(string email)
+        {
+            return await _context.Judges
+                                 .Include(j => j.User)
+                                 .AnyAsync(j => j.User.Email == email);
+        }
+
+        public async Task<bool> CheckIfNumberExist(string number)
+        {
+            return await _context.Judges
+                                 .Include(j => j.User)
+                                 .AnyAsync(j => j.User.PhoneNumber == number
+                                             && !j.IsDeleted
+                                             && !j.User.IsDeleted);
+        }
+
         public async Task DeleteAsync(Guid judgeId)
         {
             var judge = await _context.Judges.FindAsync(judgeId);
@@ -59,6 +76,12 @@ namespace Infrastructures.Persistence.Repository
         public async Task UpdateAsync(Judge judge)
         {
             _context.Judges.Update(judge);
+        }
+
+        public async Task<Judge?> GetJudgeByCourtIdAsync(Guid courtId)
+        {
+            return await _context.Judges
+                .FirstOrDefaultAsync(j => j.CourtId == courtId && !j.IsDeleted);
         }
     }
 }

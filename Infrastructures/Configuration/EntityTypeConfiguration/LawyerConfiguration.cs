@@ -24,7 +24,8 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
                 .HasMaxLength(20);
             builder.HasMany(l => l.Certificates)
                 .WithOne()
-                .HasForeignKey("LawyerId")
+                .HasForeignKey(l => l.LawyerId)
+                //.HasForeignKey("LawyerId")
                 .OnDelete(DeleteBehavior.Cascade);
             //builder.HasMany(l => l.)
             //    .WithOne()

@@ -15,5 +15,6 @@ namespace Application.IService
         Task<ResponseDto<PageResponse<UserDto>>> GetAllUsersAsync(PageRequest pageRequest);
         Task<ResponseDto<string>> SendEmailConfirmationCode(string email);
         Task<ResponseDto<string>> ConfirmEmailAsync(ConfirmEmailDto confirmEmailDto);
+        Task<ResponseDto<StatsDto>> GetTotalStats();
     }
 }

@@ -3,6 +3,7 @@ using Application.Dto;
 using Application.Interface;
 using Application.Interfaces.ExternalService;
 using Application.Interfaces.Repositories;
+using Application.Interfaces.Service;
 using Application.Interfaces.UnitOfWork;
 using Application.IService;
 using Domain.Entities;
@@ -22,7 +23,8 @@ namespace Application.Service
         private readonly IEmailService _emailService;
         private readonly IUploadService _uploadService;
         private readonly ICacheService _cacheService;
-        public RegistrarService(IRegistrarRepository registrarRepository, IUserRepository userRepository, IUnitOfWork unitOfWork, ILogger<RegistrarService> logger, IUploadService uploadService, IEmailService emailService, ICacheService cacheService)
+        private readonly IAuditLogService _auditLogService;
+        public RegistrarService(IRegistrarRepository registrarRepository, IUserRepository userRepository, IUnitOfWork unitOfWork, ILogger<RegistrarService> logger, IUploadService uploadService, IEmailService emailService, ICacheService cacheService, IAuditLogService auditLogService)
         {
             _registrarRepository = registrarRepository;
             _unitOfWork = unitOfWork;
@@ -31,22 +33,23 @@ namespace Application.Service
             _emailService = emailService;
             _uploadService = uploadService;
             _cacheService = cacheService;
+            _auditLogService = auditLogService;
         }
-        public async Task<RegistrarUpdateRequestDto> AssignRegistrarToCourtAsync(Guid registrarId, Guid courtId, DateTime? appointmentDate)
+        public async Task<RegistrarUpdateRequestDto> AssignRegistrarToCourtAsync(AssignRegistrarRequestDto dto)
         {
-            var registrar = await _registrarRepository.GetByIdAsync(registrarId);
+            var registrar = await _registrarRepository.GetByIdAsync(dto.RegistrarId);
             if (registrar == null)
             {
-                _logger.LogWarning("Registrar with Id: {RegistrarId} not found", registrarId);
+                _logger.LogWarning("Registrar with Id: {RegistrarId} not found", dto.RegistrarId);
                 return null;
             }
-            registrar.CourtId = courtId;
+            registrar.CourtId = dto.CourtId;
             await _registrarRepository.UpdateAsync(registrar);
             await _unitOfWork.SaveChangesAsync();
-            _logger.LogInformation("Registrar with Id: {RegistrarId} assigned to Court with Id: {CourtId}", registrarId, courtId);
+            _logger.LogInformation("Registrar with Id: {RegistrarId} assigned to Court with Id: {CourtId}", dto.RegistrarId, dto.CourtId);
             return new RegistrarUpdateRequestDto
             {
-                CourtId = courtId
+                CourtId = dto.CourtId,
             };
         }
         public async Task<ResponseDto<Guid>> CreateRegistrarAsync(RegistrarCreateRequestDto request)
@@ -62,12 +65,6 @@ namespace Application.Service
                 _logger.LogWarning("Lawyer with Email: {Email} already exists", request.Email);
                 return ResponseDto<Guid>.Fail("Lawyer with Email: {Email} already exists");
             }
-            //var existingRegistrar = await _userRepository.GetByEmailAsync(request.Email);
-            //if (existingRegistrar != null)
-            //{
-            //    _logger.LogWarning("Registrar with Email: {Email} already exists", request.Email);
-            //    return ResponseDto<Guid>.Fail("Registrar with Email: {Email} already exists");
-            //}
             var user = new User
             {
                 Email = request.Email,
@@ -94,6 +91,11 @@ namespace Application.Service
             await _registrarRepository.AddAsync(registrar);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Registrar with Email: {Email} created successfully", request.Email);
+            await _auditLogService.LogActionAsync(user.Id, "Create", "Registrar", registrar.Id, $"Registrar {user.Email} created and assigned to CourtId {registrar.CourtId}", Role.admin.ToString());
+            await SendWelcomeMessageToRegistrar(user.Email, user.FirstName);
+            var data = await SendEmailConfirmationCode(request.Email);
+            _logger.LogInformation("Email Sent To Registered Registrar");
+            await _auditLogService.LogActionAsync(user.Id, "SendEmail", "Registrar", registrar.Id, $"Email confirmation code sent to {user.Email}", Role.admin.ToString());
             return ResponseDto<Guid>.Success(user.Id, "Registered Successfully");
         }
 
@@ -111,7 +113,10 @@ namespace Application.Service
                 _logger.LogWarning("User associated with Registrar Id: {RegistrarId} not found", registrarId);
                 return false;
             }
+            registrar.IsDeleted = true;
+            user.IsDeleted = true;
             await _registrarRepository.UpdateAsync(registrar);
+            await _userRepository.UpdateAsync(user);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Registrar with Id: {RegistrarId} deleted successfully", registrarId);
             return true;
@@ -129,12 +134,18 @@ namespace Application.Service
             var registrarDtos = registrars.Select(r => new RegistrarDto
             {
                 Id = r.Id,
+                FirstName = r.User.FirstName,
+                LastName = r.User.LastName,
+                MiddleName = r.User.MiddleName,
+                PhoneNumber = r.User.PhoneNumber,
+                ProfilePictureUrl = r.User.ProfilePictureUrl,
+                Email = r.User.Email,
                 CourtId = r.CourtId,
-                CourtName = r.Court?.Name ?? "Unknown",
-                UserId = r.UserId,
-                Username = r.User?.Username ?? "Unknown",
-                Email = r.User?.Email ?? "Unknown"
-            });
+                CourtName = r.Court.Name,
+                Username = r.User.Username,
+                IsActive = !r.IsDeleted,
+                UserId = r.UserId
+            }).ToList();
 
             _logger.LogInformation("Retrieved all registrars successfully");
 
@@ -152,9 +163,15 @@ namespace Application.Service
             {
                 Id = registrar.Id,
                 CourtId = registrar.CourtId,
+                FirstName = registrar.User.FirstName,
+                LastName = registrar.User.LastName,
+                MiddleName = registrar.User.MiddleName,
+                PhoneNumber = registrar.User.PhoneNumber,
+                ProfilePictureUrl = registrar.User.ProfilePictureUrl,
                 CourtName = registrar.Court?.Name ?? "Unknown",
                 UserId = registrar.UserId,
                 Username = registrar.User?.Username ?? "Unknown",
+                IsActive = !registrar.IsDeleted,
                 Email = registrar.User?.Email ?? "Unknown"
             };
             _logger.LogInformation("Registrar with Id: {RegistrarId} retrieved successfully", registrarId);
@@ -201,9 +218,56 @@ namespace Application.Service
             await _registrarRepository.UpdateAsync(registrar);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Registrar with Id: {RegistrarId} updated successfully", registrarId);
+            await _auditLogService.LogActionAsync(registrar.UserId, "Update", "Registrar", registrar.Id, $"Registrar {registrar.User.Email} updated. Assigned to CourtId {registrar.CourtId}", Role.admin.ToString());
             return request;
         }
-        private async Task SendWelcomeMessage(string email, string name)
+        public async Task<ResponseDto<string>> SendEmailConfirmationCode(string email)
+        {
+            var user = await _userRepository.GetByEmailAsync(email);
+            if (user == null)
+            {
+                _logger.LogWarning("Email confirmation failed. Email {Email} not found.", email);
+                return ResponseDto<string>.Fail("User not found.");
+            }
+
+            string code = new Random().Next(100000, 999999).ToString();
+            string cacheKey = $"EmailConfirmationToken:{email}";
+            await _cacheService.AddAsync(cacheKey, code, TimeSpan.FromMinutes(15));
+            await SendVerificationEmail(email, code, user.FirstName);
+            _logger.LogInformation("Email confirmation code sent to email: {Email}", email);
+            return ResponseDto<string>.Success("Verification code sent to email.");
+        }
+        private async Task SendVerificationEmail(string email, string code, string name)
+        {
+            string emailTitle = "Verify Your Email - JustiSync";
+
+            string body = $@"
+<!doctype html>
+<html lang=""en"">
+  <head>
+    <meta charset=""utf-8""/>
+    <title>{emailTitle}</title>
+  </head>
+  <body style=""font-family:Arial,sans-serif;background-color:#f9f9f9;padding:20px;"">
+    <div style=""max-width:600px;margin:auto;background:white;padding:30px;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.1);"">
+      <h2 style=""color:#0b3d91;text-align:center;"">{emailTitle}</h2>
+      <p>Hi {name},</p>
+      <p>Thanks for signing up with <b>JustiSync</b>. Please use the code below to verify your email:</p>
+
+      <div style=""text-align:center;margin:20px 0;"">
+        <h1 style=""font-size:32px;letter-spacing:5px;color:#0b3d91;"">{code}</h1>
+      </div>
+
+      <p>If you didn’t create an account, you can safely ignore this email.</p>
+      <br/>
+      <p style=""color:#888;"">The JustiSync Team</p>
+    </div>
+  </body>
+</html>";
+
+            await _emailService.SendEmailAsync(email, emailTitle, body);
+        }
+        private async Task SendWelcomeMessageToRegistrar(string email, string name)
     {
         var subject = "Welcome to JustiSyncApplication — Registrar Account Ready";
 

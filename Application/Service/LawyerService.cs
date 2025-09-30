@@ -3,6 +3,7 @@ using Application.Dto;
 using Application.Interface;
 using Application.Interfaces.ExternalService;
 using Application.Interfaces.Repositories;
+using Application.Interfaces.Service;
 using Application.Interfaces.UnitOfWork;
 using Application.IService;
 using Domain.Entities;
@@ -21,7 +22,8 @@ namespace Application.Service
         private readonly IEmailService _emailService;
         private readonly IUserRepository _userRepository;
         private readonly ICacheService _cacheService;
-        public LawyerService(ILawyerRepository lawyerRepository, IUnitOfWork unitOfWork, ILogger<LawyerService> logger, IUploadService uploadService, IEmailService emailService, ICacheService cacheService,IUserRepository userRepository)
+        private readonly IAuditLogService _auditLogService;
+        public LawyerService(ILawyerRepository lawyerRepository, IUnitOfWork unitOfWork, ILogger<LawyerService> logger, IUploadService uploadService, IEmailService emailService, ICacheService cacheService,IUserRepository userRepository, ICertificateRepository certificateRepository, IAuditLogService auditLogService)
         {
             _lawyerRepository = lawyerRepository;
             _unitOfWork = unitOfWork;
@@ -29,7 +31,9 @@ namespace Application.Service
             _uploadService = uploadService;
             _emailService = emailService;
             _userRepository = userRepository;
+            _certificateRepository = certificateRepository;
             _cacheService = cacheService;
+            _auditLogService = auditLogService;
         }
         public async Task<ResponseDto<Guid>> CreateLawyerAsync(LawyerCreateRequestDto request)
         {
@@ -96,7 +100,11 @@ namespace Application.Service
             await _lawyerRepository.AddAsync(lawyer);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Lawyer with UserId: {UserId} created successfully", request);
+            await _auditLogService.LogActionAsync(user.Id, "Create", "Lawyer", lawyer.Id, $"Lawyer {user.FirstName} {user.LastName} created with ID {lawyer.Id}", Role.lawyer.ToString());
             await SendWelcomeMessageToLawyerAsync(user.Email, user.FirstName);
+            var data = await SendEmailConfirmationCode(request.Email);
+            _logger.LogInformation("Email Sent To Registered Lawyer");
+            await _auditLogService.LogActionAsync(user.Id, "Email", "Lawyer", lawyer.Id, $"Lawyer {user.FirstName} {user.LastName} email sent to {user.Email}", Role.lawyer.ToString());
             return ResponseDto<Guid>.Success(user.Id,"Lawyer Registration Successful");
         }
         public async Task<bool> DeleteLawyerAsync(Guid lawyerId)
@@ -134,6 +142,11 @@ namespace Application.Service
             var lawyerDtos = lawyers.Select(l => new LawyerDto
             {
                 UserId = l.UserId,
+                FirstName = l.User.FirstName,
+                LastName = l.User.LastName,
+                MiddleName = l.User.MiddleName,
+                PhoneNumber = l.User.PhoneNumber,
+                ProfilePictureUrl = l.User.ProfilePictureUrl,
                 LawyerSpecialization = l.LawyerSpecialization,
                 UniversityName = l.UniversityName,
                 BarMembershipNumber = l.BarMembershipNumber,
@@ -174,6 +187,22 @@ namespace Application.Service
             }
             var lawyerDtos = lawyers.Select(l => new LawyerDto
             {
+                FirstName = l.User.FirstName,
+                LastName = l.User.LastName,
+                MiddleName = l.User.MiddleName,
+                PhoneNumber = l.User.PhoneNumber,
+                Email = l.User.Email,
+                Certificates = l.Certificates.Select(a => new CertificateDto
+                {
+                    CertificateType = a.CertificateType,
+                    FilePath = a.FilePath,
+                    Id = a.Id,
+                    LawyerId = a.LawyerId,
+                    LawyerName = a.Lawyer.User.FirstName,
+                    UploadedAt = a.UploadedAt
+                }).ToList(),
+                ProfilePictureUrl = l.User.ProfilePictureUrl,
+                Id = l.Id,
                 UserId = l.UserId,
                 LawyerSpecialization = l.LawyerSpecialization,
                 UniversityName = l.UniversityName,
@@ -206,6 +235,11 @@ namespace Application.Service
             }
             var lawyerDto = new LawyerDto
             {
+                FirstName = lawyer.User.FirstName,
+                LastName = lawyer.User.LastName,
+                MiddleName = lawyer.User.MiddleName,
+                PhoneNumber = lawyer.User.PhoneNumber,
+                ProfilePictureUrl = lawyer.User.ProfilePictureUrl,
                 UserId = lawyer.UserId,
                 LawyerSpecialization = lawyer.LawyerSpecialization,
                 UniversityName = lawyer.UniversityName,
@@ -248,6 +282,11 @@ namespace Application.Service
             }
             var lawyerDto = new LawyerDto
             {
+                FirstName = lawyer.User.FirstName,
+                LastName = lawyer.User.LastName,
+                MiddleName = lawyer.User.MiddleName,
+                PhoneNumber = lawyer.User.PhoneNumber,
+                ProfilePictureUrl = lawyer.User.ProfilePictureUrl,
                 UserId = lawyer.UserId,
                 LawyerSpecialization = lawyer.LawyerSpecialization,
                 UniversityName = lawyer.UniversityName,
@@ -289,6 +328,11 @@ namespace Application.Service
             }
             var lawyerDtos = lawyers.Items.Select(l => new LawyerDto
             {
+                FirstName = l.User.FirstName,
+                LastName = l.User.LastName,
+                MiddleName = l.User.MiddleName,
+                PhoneNumber = l.User.PhoneNumber,
+                ProfilePictureUrl = l.User.ProfilePictureUrl,
                 UserId = l.UserId,
                 LawyerSpecialization = l.LawyerSpecialization,
                 UniversityName = l.UniversityName,
@@ -335,6 +379,7 @@ namespace Application.Service
             await _lawyerRepository.UpdateAsync(lawyer);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Lawyer with Id: {LawyerId} updated successfully", lawyerId);
+            await _auditLogService.LogActionAsync(lawyer.UserId, "Update", "Lawyer", lawyer.Id, $"Lawyer {lawyer.User.FirstName} {lawyer.User.LastName} updated with ID {lawyer.Id}", Role.lawyer.ToString());
             return ResponseDto<string>.Success($"Lawyer update is successful");
         }
         public async Task<ResponseDto<string>> UpdateVerificationStatusAsync(Guid lawyerId, LawyerUpdateVerifcationRequestDto request)
@@ -350,6 +395,7 @@ namespace Application.Service
             await _lawyerRepository.UpdateAsync(lawyer);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Lawyer with Id: {LawyerId} verification status updated to {Status}", lawyerId, request.VerificationStatus);
+            _auditLogService.LogActionAsync(lawyer.UserId, "Update", "Lawyer", lawyer.Id, $"Lawyer {lawyer.User.FirstName} {lawyer.User.LastName} verification status updated to {request.VerificationStatus}", Role.lawyer.ToString());
             return ResponseDto<string>.Success($"Lawyer Verification for {lawyer.User.FirstName} was successful \nStatus {request.VerificationStatus}");
         }
         public async Task<ResponseDto<string>> UploadCertificatesAsync(Guid lawyerId, CertificateUploadRequestDto requests)
@@ -426,8 +472,11 @@ namespace Application.Service
             {
                 certificate.IsVerified = request.IsVerified;
                 certificate.VerifiedByUserId = request.VerifiedByUserId;
-                await _certificateRepository.UpdateAsync(certificate);
             }
+            if(request.IsVerified)
+                lawyer.VerificationStatus = lawyerVerificationStatus.Verified;
+            else
+                lawyer.VerificationStatus = lawyerVerificationStatus.Rejected;
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Lawyer with Id: {lawyer} verified successfully", lawyerId);
             if (request.IsVerified)
@@ -453,6 +502,22 @@ namespace Application.Service
             {
                 Items = lawyers.Items.Select(l => new LawyerDto
                 {
+                    Id = l.Id,
+                    FirstName = l.User.FirstName,
+                    LastName = l.User.LastName,
+                    MiddleName = l.User.MiddleName,
+                    PhoneNumber = l.User.PhoneNumber,
+                    ProfilePictureUrl = l.User.ProfilePictureUrl,
+                    Email = l.User.Email,
+                    Certificates = l.Certificates?.Select(c => new CertificateDto
+                    {
+                        FilePath = c.FilePath,
+                        CertificateType = c.CertificateType,
+                        Id = c.Id,
+                        LawyerId = c.LawyerId,
+                        LawyerName = l.User != null ? $"{l.User.FirstName} {l.User.LastName}" : "Unknown",
+                        UploadedAt = c.UploadedAt
+                    }).ToList() ?? new List<CertificateDto>(),
                     UserId = l.UserId,
                     LawyerSpecialization = l.LawyerSpecialization,
                     UniversityName = l.UniversityName,
@@ -469,10 +534,53 @@ namespace Application.Service
             _logger.LogInformation("Pending Lawyers... Retrieved Successfully");
             return ResponseDto<PageResponse<LawyerDto>>.Success(lawyerDtos);
         }
+        public async Task<ResponseDto<string>> SendEmailConfirmationCode(string email)
+        {
+            var user = await _userRepository.GetByEmailAsync(email);
+            if (user == null)
+            {
+                _logger.LogWarning("Email confirmation failed. Email {Email} not found.", email);
+                return ResponseDto<string>.Fail("User not found.");
+            }
 
+            string code = new Random().Next(100000, 999999).ToString();
+            string cacheKey = $"EmailConfirmationToken:{email}";
+            await _cacheService.AddAsync(cacheKey, code, TimeSpan.FromMinutes(15));
+            await SendVerificationEmail(email, code, user.FirstName);
+            _logger.LogInformation("Email confirmation code sent to email: {Email}", email);
+            return ResponseDto<string>.Success("Verification code sent to email.");
+        }
+        private async Task SendVerificationEmail(string email, string code, string name)
+        {
+            string emailTitle = "Verify Your Email - JustiSync";
 
+            string body = $@"
+<!doctype html>
+<html lang=""en"">
+  <head>
+    <meta charset=""utf-8""/>
+    <title>{emailTitle}</title>
+  </head>
+  <body style=""font-family:Arial,sans-serif;background-color:#f9f9f9;padding:20px;"">
+    <div style=""max-width:600px;margin:auto;background:white;padding:30px;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.1);"">
+      <h2 style=""color:#0b3d91;text-align:center;"">{emailTitle}</h2>
+      <p>Hi {name},</p>
+      <p>Thanks for signing up with <b>JustiSync</b>. Please use the code below to verify your email:</p>
 
+      <div style=""text-align:center;margin:20px 0;"">
+        <h1 style=""font-size:32px;letter-spacing:5px;color:#0b3d91;"">{code}</h1>
+      </div>
 
+      <p>If you didn’t create an account, you can safely ignore this email.</p>
+      <br/>
+      <p style=""color:#888;"">The JustiSync Team</p>
+    </div>
+  </body>
+</html>";
+
+            await _emailService.SendEmailAsync(email, emailTitle, body);
+
+        }
         private async Task SendWelcomeMessageToLawyerAsync(string email, string name)
         {
             var subject = "Welcome to JustiSyncApplication — Let’s get your practice verified";
@@ -584,8 +692,8 @@ namespace Application.Service
 </head>
 <body>
   <div class='container'>
-    <p class='header'>✅ Lawyer Verification Approved</p>
-    <p>Hello {FirstName},</p>
+    <p class='header'>✅ Lawyer Verification Approved</p> 
+    <p>Hi,</p>
     <p>We are pleased to inform you that your lawyer verification request has been <b>approved</b> after successfully reviewing your uploaded certificates.</p>
     <p>You are now a <b>verified lawyer</b> on JustiSync 🎉. This grants you access to client connections, case handling, and full platform features.</p>
     <a class='btn' href='https://justisync.com/login'>Login to Your Dashboard</a>
@@ -618,7 +726,7 @@ namespace Application.Service
 <body>
   <div class='container'>
     <p class='header'>⚠️ Lawyer Verification Rejected</p>
-    <p>Hello {FirstName},</p>
+    <p>Hello,</p>
     <p>After reviewing your uploaded certificates, we regret to inform you that your lawyer verification request has been <b>rejected</b>.</p>
     <p>This may be due to one or more of the following reasons:</p>
     <ul>
@@ -633,6 +741,5 @@ namespace Application.Service
   </div>
 </body>
 </html>";
-
     }
 }

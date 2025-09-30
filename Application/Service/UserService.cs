@@ -2,10 +2,13 @@
 using Application.Dto;
 using Application.Interface;
 using Application.Interfaces.ExternalService;
+using Application.Interfaces.Repositories;
+using Application.Interfaces.Service;
 using Application.Interfaces.UnitOfWork;
 using Application.IService;
 using Domain.Entities;
 using Domain.Enums;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Service
@@ -13,19 +16,23 @@ namespace Application.Service
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly ICourtRepository _courtRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<UserService> _logger;
         private readonly IEmailService _emailService;
         private readonly IUploadService _uploadService;
         private readonly ICacheService _cacheService;
-        public UserService(IUserRepository userRepository, IUnitOfWork unitOfWork, ILogger<UserService> logger, IUploadService uploadService, IEmailService emailService, ICacheService cacheService)
+        private readonly IAuditLogService _auditLogService;
+        public UserService(IUserRepository userRepository, IUnitOfWork unitOfWork, ILogger<UserService> logger, IUploadService uploadService, IEmailService emailService, ICacheService cacheService,ICourtRepository courtRepository,IAuditLogService auditLogService)
         {
+            _auditLogService = auditLogService;
             _userRepository = userRepository;
             _unitOfWork = unitOfWork;
             _logger = logger;
             _uploadService = uploadService;
             _emailService = emailService;
             _cacheService = cacheService;
+            _courtRepository = courtRepository;
         }
         public async Task<bool> ForgotPasswordAsync(UserForgotPasswordRequestDto request)
         {
@@ -67,15 +74,12 @@ namespace Application.Service
                 _logger.LogWarning("Invalid or expired password reset token for email: {Email}", tokenDto.Token);
                 return ResponseDto<string>.Fail("Invalid or expired token.");
             }
-
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(tokenDto.Password);
-            await _userRepository.UpdateAsync(user);
             await _unitOfWork.SaveChangesAsync();
 
             _logger.LogInformation("Password reset token verified successfully for email: {Email}", tokenDto.Token);
             return ResponseDto<string>.Success("Token verified successfully.");
         }
-
         public async Task<ResponseDto<UserDto>> GetUserByEmailAsync(string email)
         {
             var user = await _userRepository.GetByEmailAsync(email);
@@ -165,10 +169,16 @@ namespace Application.Service
                 throw new UnauthorizedAccessException("Invalid email or password.");
             }
 
+            Console.WriteLine(BCrypt.Net.BCrypt.Verify(request.Password, user.PasswordHash));
+
             if (!BCrypt.Net.BCrypt.Verify(request.Password,user.PasswordHash))
             {
                 _logger.LogWarning("Login failed for {Email}. Incorrect password.", request.Email);
                 throw new UnauthorizedAccessException("Invalid email or password.");
+            }
+            if (!user.IsEmailConfirmed)
+            {
+               return ResponseDto<UserDto>.Fail("Please verify your email to proceed.");
             }
             _logger.LogInformation("Login successful for user Id: {UserId}", user.Id);
 
@@ -219,8 +229,11 @@ namespace Application.Service
             await _userRepository.AddAsync(user);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Successfully registered client with Id: {UserId}", user.Id);
+            await _auditLogService.LogActionAsync(user.Id, "User Registration", "User", user.Id, $"New Client Registered with email {user.Email}", Role.client.ToString());
             await SendWelcomeMessage(request.Email, request.FirstName);
+            var data = await SendEmailConfirmationCode(request.Email);
             _logger.LogInformation("Email Sent To Registered Client");
+            await _auditLogService.LogActionAsync(user.Id, "User Confirmation Mail Sent", "User", user.Id, $"Email Sent To Registered Client email {user.Email}", Role.client.ToString());
             return ResponseDto<Guid>.Success(user.Id,"User Registration Was Successful");
         }
         public async Task<bool> ResetPasswordAsync(UserResetPasswordRequestDto request)
@@ -246,6 +259,7 @@ namespace Application.Service
         public async Task<UserUpdateRequestDto> UpdateUserAsync(Guid id, UserUpdateRequestDto request)
         {
             _logger.LogInformation("Updating user with Id: {UserId}", id);
+            await _auditLogService.LogActionAsync(id, "User Update", "User", id, $"User with Id {id} is being updated", Role.client.ToString());
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
             {
@@ -471,6 +485,27 @@ namespace Application.Service
             await _emailService.SendEmailAsync(email, subject, message);
         }
 
-       
+        public async Task<ResponseDto<StatsDto>> GetTotalStats()
+        {
+            var totalLawyers = await _userRepository.CountAsync(a => a.Role == Role.lawyer);
+            var totalClients = await _userRepository.CountAsync(a => a.Role == Role.client);
+            var totalJudges = await _userRepository.CountAsync(a => a.Role == Role.judge);
+            var totalRegistrars = await _userRepository.CountAsync(a => a.Role == Role.registrar);
+            var total = await _userRepository.CountAsync(a => a.Email != null);
+            var totalPending = await _userRepository.CountAsync(a => !a.IsEmailConfirmed);
+            var totalCourts = await _courtRepository.GetCourtsCount();
+
+
+
+            return ResponseDto<StatsDto>.Success(new StatsDto
+            {
+                TotalClients = totalClients,
+                TotalCourt = totalCourts,
+                TotalJudges = totalJudges,
+                TotalLawyers = totalLawyers,
+                TotalRegistrar = totalRegistrars,
+                PendingVerifications = totalPending
+            });
+        }
     }
 }

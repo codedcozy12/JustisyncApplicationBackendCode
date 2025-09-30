@@ -20,7 +20,8 @@ namespace Application.Service
         private readonly ICacheService _cacheService;
         private readonly IUploadService _uploadService;
         private readonly IEmailService _emailService;
-        public JudgeService( IJudgeRepository judgeRepository, IUnitOfWork unitOfWork, ILogger<JudgeService> logger, ICacheService cacheService, IUploadService uploadService, IEmailService emailService,IUserRepository userRepository)
+        private readonly IAuditLogService _auditLogService;
+        public JudgeService( IJudgeRepository judgeRepository, IUnitOfWork unitOfWork, ILogger<JudgeService> logger, ICacheService cacheService, IUploadService uploadService, IEmailService emailService,IUserRepository userRepository, IAuditLogService auditLogService)
         {
             _judgeRepository = judgeRepository;
             _unitOfWork = unitOfWork;
@@ -29,42 +30,56 @@ namespace Application.Service
             _uploadService = uploadService;
             _emailService = emailService;
             _userRepository = userRepository;
+            _auditLogService = auditLogService;
         }
-        public async Task<JudgeUpdateRequestDto> AssignJudgeToCourtAsync(Guid judgeId, Guid courtId, DateTime? appointmentDate)
+        public async Task<JudgeUpdateRequestDto> AssignJudgeToCourtAsync(AssignJudgeRequestDto dto)
         {
-            var judge = await _judgeRepository.GetByIdAsync(judgeId);
+            var judge = await _judgeRepository.GetByIdAsync(dto.JudgeId);
             if (judge == null)
             {
-                _logger.LogWarning("Judge with Id: {JudgeId} not found", judgeId);
+                _logger.LogWarning("Judge with Id: {JudgeId} not found", dto.JudgeId);
                 return null;
             }
-            judge.CourtId = courtId;
-            judge.AppointmentDate = appointmentDate;
+            judge.CourtId = dto.CourtId;
+            judge.AppointmentDate = dto.AppointmentDate;
             await _judgeRepository.UpdateAsync(judge);
             await _unitOfWork.SaveChangesAsync();
-            _logger.LogInformation("Judge with Id: {JudgeId} assigned to Court with Id: {CourtId}", judgeId, courtId);
+            _logger.LogInformation("Judge with Id: {JudgeId} assigned to Court with Id: {CourtId}", dto.JudgeId, dto.CourtId);
             return new JudgeUpdateRequestDto
             {
-                CourtAssignedId = courtId,
-                AppointmentDate = appointmentDate
+                CourtAssignedId = dto.CourtId,
+                AppointmentDate = dto.AppointmentDate
             };
         }
-        public async Task<ResponseDto<JudgeCreateRequestDto>> CreateJudgeAsync(JudgeCreateRequestDto request)
+        public async Task<ResponseDto<Guid>> CreateJudgeAsync(JudgeCreateRequestDto request)
         {
             if (request == null)
             {
                 _logger.LogWarning("Judge creation request is null");
                 return null;
             }
+            var validNumber = await _judgeRepository.CheckIfNumberExist(request.PhoneNumber);
+            if (validNumber)
+            {
+                _logger.LogWarning("Judge with Phone Number: {PhoneNumber} already exists", request.PhoneNumber);
+                return ResponseDto<Guid>.Fail($"Judge with Phone Number: {request.PhoneNumber} already exists");
+            }
             var existingUser = await _userRepository.GetByEmailAsync(request.Email);
             if (existingUser != null)
             {
                 _logger.LogWarning("Judge with Email: {Email} already exists", request.Email);
-                return  ResponseDto<JudgeCreateRequestDto>.Fail($"Judge with Email: {request.Email} already exists");
+                return  ResponseDto<Guid>.Fail($"Judge with Email: {request.Email} already exists");
             }
+
+            var existingJudge = await _judgeRepository.GetJudgeByCourtIdAsync(request.CourtAssignedId);
+            if (existingJudge != null)
+            {
+                return ResponseDto<Guid>.Fail("A judge is already assigned to this court. Please remove the current judge before assigning a new one.");
+            }
+
             var user = new User
             {
-                Email = request.Email,
+                Email = request.Email, 
                 Username = request.Username,
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword(request.Password),
                 FirstName = request.FirstName,
@@ -89,7 +104,12 @@ namespace Application.Service
             await _userRepository.AddAsync(user);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Judge with Email: {Email} created successfully", request.Email);
-            return ResponseDto<JudgeCreateRequestDto>.Success(request,"Registered Successfully");
+            await _auditLogService.LogActionAsync(user.Id, "Create", "Judge", judge.Id, $"Judge {user.Username} created and assigned to court {request.CourtAssignedId}", Role.admin.ToString());
+            await SendWelcomeMessageToJudge(user.Email, user.FirstName);
+            var data = await SendEmailConfirmationCode(request.Email);
+            _logger.LogInformation("Email Sent To Registered Lawyer");
+            await _auditLogService.LogActionAsync(user.Id, "SendEmail", "Judge", judge.Id, $"Verification email sent to Judge {user.Username}", Role.admin.ToString());
+            return ResponseDto<Guid>.Success(judge.Id,"Registered Successfully");
         }
         public async Task<bool> DeleteJudgeAsync(Guid judgeId)
         {
@@ -108,6 +128,7 @@ namespace Application.Service
             judge.IsDeleted = true;
             user.IsDeleted = true;
             await _judgeRepository.UpdateAsync(judge);
+            await _userRepository.UpdateAsync(user);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Judge with Id: {JudgeId} deleted successfully", judgeId);
             return true;
@@ -130,11 +151,15 @@ namespace Application.Service
             {
                 Id = j.Id,
                 UserId = j.UserId,
+                Email = j.User.Email,
+                Username = j.User.Username,
+                ProfilePictureUrl = j.User.ProfilePictureUrl,
                 PhoneNumber = j.User.PhoneNumber,
                 MiddleName = j.User.MiddleName,
                 LastName = j.User.LastName,
                 FirstName = j.User.FirstName,
                 CourtAssignedId = j.CourtId,
+                IsActive = !j.IsDeleted,
                 AppointmentDate = j.AppointmentDate
             }).ToList();
 
@@ -170,7 +195,11 @@ namespace Application.Service
                 LastName = judge.User.LastName,
                 FirstName = judge.User.FirstName,
                 CourtAssignedId = judge.CourtId,
-                AppointmentDate = judge.AppointmentDate
+                AppointmentDate = judge.AppointmentDate,
+                ProfilePictureUrl = judge.User.ProfilePictureUrl,
+                Email = judge.User.Email,
+                IsActive = !judge.IsDeleted,
+                Username = judge.User.Username
             };
             _logger.LogInformation("Retrieved Judge with Id: {JudgeId} successfully", judgeId);
             return new ResponseDto<JudgeDto>
@@ -225,9 +254,57 @@ namespace Application.Service
             await _judgeRepository.UpdateAsync(judge);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Judge with Id: {JudgeId} updated successfully", judgeId);
+            await _auditLogService.LogActionAsync(judge.UserId, "Update", "Judge", judge.Id, $"Judge {judge.User.Username} details updated", Role.admin.ToString());
             return request;
         }
-        private async Task SendWelcomeMessage(string email, string name)
+        public async Task<ResponseDto<string>> SendEmailConfirmationCode(string email)
+        {
+            var user = await _userRepository.GetByEmailAsync(email);
+            if (user == null)
+            {
+                _logger.LogWarning("Email confirmation failed. Email {Email} not found.", email);
+                return ResponseDto<string>.Fail("User not found.");
+            }
+
+            string code = new Random().Next(100000, 999999).ToString();
+            string cacheKey = $"EmailConfirmationToken:{email}";
+            await _cacheService.AddAsync(cacheKey, code, TimeSpan.FromMinutes(15));
+            await SendVerificationEmail(email, code, user.FirstName);
+            _logger.LogInformation("Email confirmation code sent to email: {Email}", email);
+            return ResponseDto<string>.Success("Verification code sent to email.");
+        }
+        private async Task SendVerificationEmail(string email, string code, string name)
+        {
+            string emailTitle = "Verify Your Email - JustiSync";
+
+            string body = $@"
+<!doctype html>
+<html lang=""en"">
+  <head>
+    <meta charset=""utf-8""/>
+    <title>{emailTitle}</title>
+  </head>
+  <body style=""font-family:Arial,sans-serif;background-color:#f9f9f9;padding:20px;"">
+    <div style=""max-width:600px;margin:auto;background:white;padding:30px;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,0.1);"">
+      <h2 style=""color:#0b3d91;text-align:center;"">{emailTitle}</h2>
+      <p>Hi {name},</p>
+      <p>Thanks for signing up with <b>JustiSync</b>. Please use the code below to verify your email:</p>
+
+      <div style=""text-align:center;margin:20px 0;"">
+        <h1 style=""font-size:32px;letter-spacing:5px;color:#0b3d91;"">{code}</h1>
+      </div>
+
+      <p>If you didn’t create an account, you can safely ignore this email.</p>
+      <br/>
+      <p style=""color:#888;"">The JustiSync Team</p>
+    </div>
+  </body>
+</html>";
+
+            await _emailService.SendEmailAsync(email, emailTitle, body);
+
+        }
+        private async Task SendWelcomeMessageToJudge(string email, string name)
     {
         var subject = "Welcome to JustiSyncApplication — Judge Account Activated";
 

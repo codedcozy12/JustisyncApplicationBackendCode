@@ -13,11 +13,11 @@ namespace Application.Dto
         public required string MiddleName { get; set; }
         public required string PhoneNumber { get; set; }
         public string? ProfilePictureUrl { get; set; }
-        public string CourtName { get; set; } = default!;
         public DateTime? AppointmentDate { get; set; }
         public Guid UserId { get; set; }
-        public string Username { get; set; } = default!;
-        public string Email { get; set; } = default!;
+        public string Username { get; set; } = default;
+        public bool IsActive { get; set; }
+        public string Email { get; set; } = default;
     }
     public class JudgeCreateRequestDto
     {
@@ -29,12 +29,18 @@ namespace Application.Dto
         public required string MiddleName { get; set; }
         public required string PhoneNumber { get; set; }
         public IFormFile? ProfilePictureUrl { get; set; }
-        public Guid CourtAssignedId { get; set; }
+        public required Guid CourtAssignedId { get; set; }
         public DateTime? AppointmentDate { get; set; }
     }
     public class JudgeUpdateRequestDto
     {
         public Guid CourtAssignedId { get; set; }
+        public DateTime? AppointmentDate { get; set; }
+    }
+    public class AssignJudgeRequestDto
+    {
+        public Guid JudgeId { get; set; }
+        public Guid CourtId { get; set; }
         public DateTime? AppointmentDate { get; set; }
     }
 }

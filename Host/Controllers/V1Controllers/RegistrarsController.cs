@@ -64,11 +64,12 @@ namespace Host.Controllers.V1Controllers
             var result = await _registrarService.GetRegistrarsByCourtAsync(courtId);
             return Ok(result);
         }
-        [HttpPost("{registrarId:guid}/assign-to-court/{courtId:guid}")]
+
+        [HttpPost("assign-to-court")]
         [SwaggerOperation(Summary = "Assign registrar to a court", Description = "Assigns a registrar to a specified court with an optional appointment date.")]
-        public async Task<IActionResult> AssignRegistrarToCourt(Guid registrarId, Guid courtId, [FromQuery] DateTime? appointmentDate)
+        public async Task<IActionResult> AssignRegistrarToCourt([FromBody] AssignRegistrarRequestDto dto)
         {
-            var result = await _registrarService.AssignRegistrarToCourtAsync(registrarId, courtId, appointmentDate);
+            var result = await _registrarService.AssignRegistrarToCourtAsync(dto);
             return Ok(result);
         }
     }

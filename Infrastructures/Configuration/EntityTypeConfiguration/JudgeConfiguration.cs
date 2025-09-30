@@ -7,11 +7,12 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
     public class JudgeConfiguration : IEntityTypeConfiguration<Judge>
     {
             public void Configure(EntityTypeBuilder<Judge> builder)
-            {
+            {      
                 builder.ToTable("Judges");
                 builder.HasKey(r => r.Id);
             builder.Property(r => r.CourtId)
                    .IsRequired();
+
             builder.Property(r => r.AppointmentDate)
                    .HasColumnType("datetime2")
                    .IsRequired(false);

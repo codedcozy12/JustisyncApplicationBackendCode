@@ -15,6 +15,7 @@ namespace Application.IService
         Task<ResponseDto<IEnumerable<LawyerDto>>> GetVerifiedLawyersAsync();
         Task<ResponseDto<string>> VerifyCertificateAsync(Guid lawyerId, CertificateUpdateRequestDto request);
         Task<ResponseDto<LawyerDto>> GetCertificatesByLawyerAsync(Guid lawyerId);
+        Task<ResponseDto<string>> SendEmailConfirmationCode(string email);
         Task<ResponseDto<string>> UpdateVerificationStatusAsync(Guid lawyerId, LawyerUpdateVerifcationRequestDto status);
         Task<ResponseDto<IEnumerable<LawyerDto>>> SearchLawyersAsync(string? university, lawyerVerificationStatus? verificationStatus, LawyerSpecialization? specialization, PageRequest request);
     }

@@ -4,6 +4,8 @@ namespace Application.Interfaces.Repositories
 {
     public interface IRegistrarRepository
     {
+        Task<bool> CheckIfNumberExist(string number);
+        Task<bool> CheckIfEmailExists(string email);
         Task<Registrar?> GetByIdAsync(Guid registrarId);
         Task<IEnumerable<Registrar>> GetAllAsync();
         Task AddAsync(Registrar registrar);

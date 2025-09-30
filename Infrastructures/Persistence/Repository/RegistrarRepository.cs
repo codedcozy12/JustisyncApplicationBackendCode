@@ -16,6 +16,21 @@ namespace Infrastructures.Persistence.Repository
         {
             await _context.Registrars.AddAsync(registrar);
         }
+
+        public async Task<bool> CheckIfEmailExists(string email)
+        {
+            return await _context.Registrars
+                                 .Include(r => r.User)
+                                 .AnyAsync(r => r.User.Email == email);
+        }
+
+        public async Task<bool> CheckIfNumberExist(string number)
+        {
+            return await _context.Registrars
+                                 .Include(r => r.User)
+                                 .AnyAsync(r => r.User.PhoneNumber == number);
+        }
+
         public async Task DeleteAsync(Guid registrarId)
         {
             var registrar = await _context.Registrars.FindAsync(registrarId);

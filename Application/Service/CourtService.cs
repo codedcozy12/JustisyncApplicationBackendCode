@@ -3,6 +3,7 @@ using Application.Interfaces.Repositories;
 using Application.Interfaces.Service;
 using Application.Interfaces.UnitOfWork;
 using Domain.Entities;
+using Domain.Enums;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Service
@@ -12,12 +13,14 @@ namespace Application.Service
         private readonly ILogger<CourtService> _logger;
         private readonly ICourtRepository _courtRepository;
         private readonly IUnitOfWork _unitofwork;
+        private readonly IAuditLogService _auditLogService;
 
-        public CourtService(ILogger<CourtService> logger, ICourtRepository courtRepository, IUnitOfWork unitOfWork)
+        public CourtService(ILogger<CourtService> logger, ICourtRepository courtRepository, IUnitOfWork unitOfWork, IAuditLogService auditLogService)
         {
             _logger = logger;
             _courtRepository = courtRepository;
             _unitofwork = unitOfWork;
+            _auditLogService = auditLogService;
         }
         public async Task<ResponseDto<CourtCreateRequestDto>> CreateCourtAsync(CourtCreateRequestDto request)
         {
@@ -28,6 +31,28 @@ namespace Application.Service
                 {
                     IsSuccess = false,
                     Message = "Invalid court creation request",
+                    Data = null
+                };
+            }
+            var validEmail = await _courtRepository.CheckIfEmailExists(request.ContactEmail);
+            if (validEmail)
+            {
+                _logger.LogWarning("Court creation failed: Contact email {ContactEmail} already exists", request.ContactEmail);
+                return new ResponseDto<CourtCreateRequestDto>
+                {
+                    IsSuccess = false,
+                    Message = "Contact email already exists",
+                    Data = null
+                };
+            }
+            var validNumber = await _courtRepository.CheckIfNumberExist(request.ContactPhone);
+            if(validNumber)
+            {
+                _logger.LogWarning("Court creation failed: Contact number {ContactPhone} already exists", request.ContactPhone);
+                return new ResponseDto<CourtCreateRequestDto>
+                {
+                    IsSuccess = false,
+                    Message = "Contact number already exists",
                     Data = null
                 };
             }
@@ -47,12 +72,10 @@ namespace Application.Service
                 Registrars = new List<Registrar>(),
                 IsActive = true
             };
-
             await _courtRepository.AddAsync(court);
             await _unitofwork.SaveChangesAsync();
-
             _logger.LogInformation("Court created successfully with ID: {Id}", court.Id);
-
+            await _auditLogService.LogActionAsync(court.Id, "Create", "Court", court.Id, $"Court {court.Name} created", Role.admin.ToString());
             return new ResponseDto<CourtCreateRequestDto>
             {
                 IsSuccess = true,
@@ -173,13 +196,27 @@ namespace Application.Service
                 _logger.LogWarning("Court with ID: {Id} not found for update", courtId);
                 return null;
             }
+            var validEmail = await _courtRepository.CheckIfEmailExists(request.ContactEmail);
+            if (validEmail)
+            {
+                _logger.LogWarning("Court update failed: Contact email {ContactEmail} already exists", request.ContactEmail);
+                return null;
+            }
+            var validNumber = await _courtRepository.CheckIfNumberExist(request.ContactPhone);
+            if (validNumber)
+            {
+                _logger.LogWarning("Court update failed: Contact number {ContactPhone} already exists", request.ContactPhone);
+                return null;
+            }
             court.ContactEmail = request.ContactEmail;
             court.ContactPhone = request.ContactPhone;
             court.Jurisdiction = request.Jurisdiction;
             court.IsActive = request.IsActive;
+            court.IsDeleted = !request.IsActive;
             await _courtRepository.UpdateAsync(court);
             await _unitofwork.SaveChangesAsync();
             _logger.LogInformation("Court with ID: {Id} updated successfully", courtId);
+            await _auditLogService.LogActionAsync(court.Id, "Update", "Court", court.Id, $"Court {court.Name} updated.", Role.admin.ToString());
             return request;
         }
     }

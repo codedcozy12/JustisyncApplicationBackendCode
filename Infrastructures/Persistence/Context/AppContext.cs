@@ -21,6 +21,7 @@ namespace Infrastructures.Persistence.Context
         public DbSet<Case> Cases { get; set; }
         public DbSet<AIConversationSession> AIConversationSessions { get; set; }
         public DbSet<AIChatMessage> AIChatMessages { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

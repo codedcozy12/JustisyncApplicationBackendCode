@@ -1,4 +1,5 @@
-﻿using Application.Dto;
+﻿using System.Threading.Tasks;
+using Application.Dto;
 using Application.Interfaces.AuthService;
 using Application.IService;
 using Microsoft.AspNetCore.Authorization;
@@ -38,12 +39,9 @@ namespace Host.Controllers.V1Controllers
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] UserLoginRequestDto request)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            _logger.LogInformation("Login attempt for user with email: {Email}", request.Email);
-
             var result = await _userService.LoginAsync(request);
-            if (result == null) return Unauthorized("Invalid email or password.");
-            var token = _authService.GenerateJwtToken(result.Data!);
+            if (result == null || result.Data == null) return Unauthorized("Invalid email or password.");
+            var token = _authService.GenerateJwtToken(result.Data);
 
             return Ok(new
             {
@@ -56,9 +54,6 @@ namespace Host.Controllers.V1Controllers
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword([FromBody] UserForgotPasswordRequestDto request)
         {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-            _logger.LogInformation("Processing forgot password request for email: {Email}", request.Email);
-
             if (request == null) return BadRequest("Invalid request data.");
 
             var result = await _userService.ForgotPasswordAsync(request);
@@ -92,11 +87,7 @@ namespace Host.Controllers.V1Controllers
         [Authorize]
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword([FromBody] UserResetPasswordRequestDto request)
-        {
-            if (!ModelState.IsValid) return BadRequest(ModelState);
-
-            _logger.LogInformation("Resetting password for user with email: {Email}", request.Email);
-
+        { 
             var result = await _userService.ResetPasswordAsync(request);
             if (!result) return BadRequest("Failed to reset password. Please check your credentials.");
 
@@ -123,8 +114,9 @@ namespace Host.Controllers.V1Controllers
             return Ok(result);
         }
 
-        [SwaggerOperation(Summary = "Retrieve all users with optional filters and pagination")]
+        
         [HttpGet("all")]
+        [SwaggerOperation(Summary = "Retrieve all users with optional filters and pagination")]
         public async Task<IActionResult> GetAllUsers([FromQuery] PageRequest request)
         {
             _logger.LogInformation("Retrieving all users.");
@@ -167,6 +159,14 @@ namespace Host.Controllers.V1Controllers
             if (result == null || !result.IsSuccess)
                 return BadRequest(result?.Message ?? "Failed to confirm email.");
             return Ok(result);
+        }
+
+        [SwaggerOperation(Summary = "Get The Users Statistics")]
+        [HttpGet("stats")]
+        public async Task<IActionResult> GetStats()
+        {
+            var stats = await _userService.GetTotalStats();
+            return Ok(stats);
         }
     }
 }

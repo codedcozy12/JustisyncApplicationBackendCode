@@ -16,6 +16,17 @@ namespace Infrastructures.Persistence.Repository
         {
             await _context.Courts.AddAsync(court);
         }
+
+        public async Task<bool> CheckIfEmailExists(string email)
+        {
+            return await _context.Courts.AnyAsync(c => c.ContactEmail == email);
+        }
+
+        public async Task<bool> CheckIfNumberExist(string number)
+        {
+            return await _context.Courts.AnyAsync(c => c.ContactPhone == number);
+        }
+
         public async Task<IEnumerable<Court>> GetActiveCourtsAsync()
         {
             return await _context.Courts
@@ -39,6 +50,12 @@ namespace Infrastructures.Persistence.Repository
                                  .Where(c => c.Registrars.Any(r => r.Id == registrarId))
                                  .ToListAsync();
         }
+
+        public async Task<int> GetCourtsCount()
+        {
+            return await _context.Courts.CountAsync();
+        }
+
         public async Task UpdateAsync(Court court)
         {
             _context.Courts.Update(court);

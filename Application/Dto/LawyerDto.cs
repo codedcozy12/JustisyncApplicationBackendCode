@@ -9,6 +9,11 @@ namespace Application.Dto
         public Guid UserId { get; set; }
         public string Username { get; set; } = default!;
         public string Email { get; set; } = default!;
+        public required string FirstName { get; set; } = default!;
+        public required string LastName { get; set; } = default!;
+        public required string MiddleName { get; set; } = default!;
+        public required string PhoneNumber { get; set; } = default!;
+        public string ProfilePictureUrl { get; set; } = default;
         public string? LawSchoolName { get; set; }
         public string UniversityName { get; set; } = default!;
         public string BarMembershipNumber { get; set; } = default!;
@@ -26,7 +31,7 @@ namespace Application.Dto
         public required string MiddleName { get; set; } = default!;
         public required string PhoneNumber { get; set; } = default!;
         public IFormFile? ProfilePictureUrl { get; set; }
-        public string? LawSchoolName { get; set; }
+        public required string LawSchoolName { get; set; }
         public string UniversityName { get; set; } = default!;
         public string BarMembershipNumber { get; set; } = default!;
         public LawyerSpecialization LawyerSpecialization { get; set; }

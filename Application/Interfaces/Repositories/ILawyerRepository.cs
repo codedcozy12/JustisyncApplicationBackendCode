@@ -7,6 +7,8 @@ namespace Application.Interfaces.Repositories
 {
     public interface ILawyerRepository
     {
+        Task<bool> CheckIfNumberExist(string number);
+        Task<bool> CheckIfEmailExists(string email);
         Task<PageResponse<Lawyer>> GetPendingLawyersAsync(PageRequest pageRequest);
         Task<Lawyer?> GetByIdAsync(Guid lawyerId);
         Task<IEnumerable<Lawyer>> GetAllAsync();

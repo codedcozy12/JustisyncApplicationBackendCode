@@ -64,11 +64,11 @@ namespace Host.Controllers.V1Controllers
             var result = await _judgeService.GetJudgesByCourtAsync(courtId);
             return Ok(result);
         }
-        [HttpPost("{judgeId:guid}/assign-to-court/{courtId:guid}")]
+        [HttpPost("assign-to-court")]
         [SwaggerOperation(Summary = "Assign judge to a court", Description = "Assigns a judge to a specified court with an optional appointment date.")]
-        public async Task<IActionResult> AssignJudgeToCourt(Guid judgeId, Guid courtId, [FromQuery] DateTime? appointmentDate)
+        public async Task<IActionResult> AssignJudgeToCourt(AssignJudgeRequestDto dto)
         {
-            var result = await _judgeService.AssignJudgeToCourtAsync(judgeId, courtId, appointmentDate);
+            var result = await _judgeService.AssignJudgeToCourtAsync(dto);
             return Ok(result);
         }
     }
