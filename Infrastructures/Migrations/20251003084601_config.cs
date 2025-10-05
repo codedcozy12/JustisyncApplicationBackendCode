@@ -5,7 +5,7 @@
 namespace Infrastructures.Migrations
 {
     /// <inheritdoc />
-    public partial class sixth : Migration
+    public partial class config : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

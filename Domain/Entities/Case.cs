@@ -6,9 +6,14 @@ namespace Domain.Entities
     {                       
         public required string CaseNumber { get; set; }
         public required string Title { get; set; }                    
-        public required string Description { get; set; }              
+        public required string Description { get; set; }
         public required OffenseType OffenseType { get; set; }
-        public CaseStatus Status { get; set; } = CaseStatus.Initiated;                   
+        public AllowedCaseType AllowedCaseType { get; set; }
+        public string OffenseLocation { get; set; } = default!;
+        public Court Court { get; set; } = default!;
+        public required Guid CourtId { get; set; }
+        public CaseStatus Status { get; set; } = CaseStatus.Initiated; 
+        public ICollection<CaseParty> CaseParties { get; set; } = [];
         public required Guid ClientId { get; set; }
         public User Client { get; set; } = default!;
         public required Guid LawyerId { get; set; }

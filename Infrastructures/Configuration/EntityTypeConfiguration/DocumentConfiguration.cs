@@ -9,20 +9,28 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
         public void Configure(EntityTypeBuilder<Document> builder)
         {
             builder.ToTable("Documents");
+
             builder.HasKey(d => d.Id);
+
             builder.Property(d => d.FileName)
-                .IsRequired()
-                .HasMaxLength(255);
+                   .IsRequired()
+                   .HasMaxLength(255);
+
             builder.Property(d => d.FileType)
-                .IsRequired()
-                .HasMaxLength(50);
+                   .IsRequired()
+                   .HasMaxLength(100);
+
             builder.Property(d => d.FileUrl)
-                .IsRequired()
-                .HasMaxLength(500);
+                   .IsRequired()
+                   .HasMaxLength(500);
+
+            builder.Property(d => d.CaseId)
+                   .IsRequired();
+
             builder.HasOne(d => d.Case)
-                .WithMany(c => c.Documents)
-                .HasForeignKey(d => d.CaseId)
-                .OnDelete(DeleteBehavior.Cascade);
+                   .WithMany(c => c.Documents)
+                   .HasForeignKey(d => d.CaseId)
+                   .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

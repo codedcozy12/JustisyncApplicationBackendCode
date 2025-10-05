@@ -34,7 +34,7 @@ namespace Infrastructures.Persistence.Repository
         {
             return await _context.Notifications
                 .Include(n => n.User)
-                .Where(n => n.ToId == userId)
+                .Where(n => n.UserId == userId)
                 .OrderByDescending(n => n.Id)
                 .ToListAsync();
         }
@@ -42,14 +42,14 @@ namespace Infrastructures.Persistence.Repository
         {
             return await _context.Notifications
                 .Include(n => n.User)
-                .Where(n => n.ToId == userId && !n.IsRead)
+                .Where(n => n.UserId == userId && !n.IsRead)
                 .OrderByDescending(n => n.Id)
                 .ToListAsync();
         }
         public async Task<bool> MarkAllAsReadAsync(Guid userId)
         {
             var notifications = await _context.Notifications
-                .Where(n => n.ToId == userId && !n.IsRead)
+                .Where(n => n.UserId == userId && !n.IsRead)
                 .ToListAsync();
 
             if (!notifications.Any())

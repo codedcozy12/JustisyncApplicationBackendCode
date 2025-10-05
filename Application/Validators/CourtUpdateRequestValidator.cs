@@ -15,9 +15,9 @@ namespace Application.Validators
                 .Matches(@"^\+?[1-9]\d{1,14}$").WithMessage("Invalid phone number format.")
                 .When(x => !string.IsNullOrWhiteSpace(x.ContactPhone));
 
-            RuleFor(x => x.Jurisdiction)
-            .IsInEnum()
-            .WithMessage("Invalid jurisdiction value.");
+            //RuleFor(x => x.Jurisdiction)
+            //.IsInEnum()
+            //.WithMessage("Invalid jurisdiction value.");
         }
     }
 }

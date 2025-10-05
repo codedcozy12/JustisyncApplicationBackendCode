@@ -68,7 +68,8 @@ namespace Application.Service
                 State = request.State,
                 ContactEmail = request.ContactEmail,
                 ContactPhone = request.ContactPhone,
-                Jurisdiction = request.Jurisdiction,
+                AllowedCaseTypes = request.AllowedCaseTypes,
+                //Jurisdiction = request.Jurisdiction,
                 Registrars = new List<Registrar>(),
                 IsActive = true
             };
@@ -111,9 +112,10 @@ namespace Application.Service
                 State = c.State,
                 ContactEmail = c.ContactEmail,
                 ContactPhone = c.ContactPhone,
-                Jurisdiction = c.Jurisdiction,
+                AllowedCaseTypes = c.AllowedCaseTypes.ToList(),
+                //Jurisdiction = c.Jurisdiction,
                 IsActive = c.IsActive
-            });
+            }).ToList();
             return new ResponseDto<IEnumerable<CourtDto>>
             {
                 IsSuccess = true,
@@ -144,9 +146,10 @@ namespace Application.Service
                 State = c.State,
                 ContactEmail = c.ContactEmail,
                 ContactPhone = c.ContactPhone,
-                Jurisdiction = c.Jurisdiction,
+                AllowedCaseTypes = c.AllowedCaseTypes.ToList(),
+                //Jurisdiction = c.Jurisdiction,
                 IsActive = c.IsActive
-            });
+            }).ToList();
             return new ResponseDto<IEnumerable<CourtDto>>
             {
                 IsSuccess = true,
@@ -176,10 +179,10 @@ namespace Application.Service
                 State = court.State,
                 ContactEmail = court.ContactEmail,
                 ContactPhone = court.ContactPhone,
-                Jurisdiction = court.Jurisdiction,
+                AllowedCaseTypes = court.AllowedCaseTypes.ToList(),
+                //Jurisdiction = court.Jurisdiction,
                 IsActive = court.IsActive
             };
-
             _logger.LogInformation("Court retrieved successfully with Id: {CourtId}", court.Id);
 
             return new ResponseDto<CourtDto> 
@@ -210,7 +213,7 @@ namespace Application.Service
             }
             court.ContactEmail = request.ContactEmail;
             court.ContactPhone = request.ContactPhone;
-            court.Jurisdiction = request.Jurisdiction;
+            //court.Jurisdiction = request.Jurisdiction;
             court.IsActive = request.IsActive;
             court.IsDeleted = !request.IsActive;
             await _courtRepository.UpdateAsync(court);

@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Infrastructures.Configuration.EntityTypeConfiguration;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructures.Persistence.Context
@@ -15,17 +16,19 @@ namespace Infrastructures.Persistence.Context
         public DbSet<Document> Documents { get; set; }
         public DbSet<CourtSession> CourtSessions { get; set; }
         public DbSet<Court> Courts { get; set; }
-        public DbSet<ChatMessage> ChatMessages { get; set; }
         public DbSet<Chat> Chats { get; set; }
+        public DbSet<ChatMessage> ChatMessages { get; set; }
         public DbSet<CaseProceedingRecord> CaseProceedingRecords { get; set; }
         public DbSet<Case> Cases { get; set; }
-        public DbSet<AIConversationSession> AIConversationSessions { get; set; }
-        public DbSet<AIChatMessage> AIChatMessages { get; set; }
+        public DbSet<AiConversationSession> AIConversationSessions { get; set; }
+        public DbSet<AiChatMessage> AIChatMessages { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<CaseParty> CaseParties { get; set; }
+        public DbSet<JudgeCourt> JudgeCourts { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppContext).Assembly);
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(AuditLogConfiguration).Assembly);
         }
     }
 }

@@ -6,6 +6,6 @@
         public string Title { get; set; } = default!;
         public bool IsRead { get; set; } = false;
         public User User { get; set; } = default!;
-        public Guid ToId { get; set; }
+        public Guid UserId { get; set; }
     }
 }

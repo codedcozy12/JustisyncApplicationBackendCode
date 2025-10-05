@@ -23,14 +23,13 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
             builder.Property(n => n.IsRead)
                    .HasDefaultValue(false);
 
-            builder.Property(n => n.ToId)
+            builder.Property(n => n.UserId)
                    .IsRequired();
 
-            //builder.HasOne(n => n.User)
-            //   .WithMany(u => u.Notifications)
-            //   .HasForeignKey(n => n.ToId) 
-            //   .HasPrincipalKey(u => u.Id) 
-            //   .OnDelete(DeleteBehavior.Cascade);
+            builder.HasOne(n => n.User)                 
+               .WithMany(u => u.Notifications)
+               .HasForeignKey(n => n.UserId)
+               .OnDelete(DeleteBehavior.Cascade);
 
 
             builder.Property(n => n.DateCreated);

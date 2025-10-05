@@ -24,10 +24,11 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseMySQL(builder.Configuration.GetConnectionString("DevString")!));
+    options.UseMySql(
+        builder.Configuration.GetConnectionString("DevString")!,
+        ServerVersion.AutoDetect(builder.Configuration.GetConnectionString("DevString")!)
+    ));
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ILawyerRepository, LawyerRepository>();
@@ -37,6 +38,8 @@ builder.Services.AddScoped<ICertificateRepository, CertificateRepository>();
 builder.Services.AddScoped<ICourtRepository, CourtRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
+builder.Services.AddScoped<IAiConversationSessionRepository, AiConversationSessionRepository>();
+builder.Services.AddScoped<IAiChatMessageRepository, AiChatMessageRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -52,6 +55,8 @@ builder.Services.AddScoped<ICertificateService, CertificateService>();
 builder.Services.AddScoped<ICourtService, CourtService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
+builder.Services.AddScoped<IAiChatMessageService, AiChatMessageService>();
+builder.Services.AddScoped<IAIChatProvider, AiChatProvider>();    
 
 builder.Services.AddAuthentication(config =>
 {
@@ -76,6 +81,8 @@ builder.Services.AddAuthentication(config =>
 });
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.Configure<OpenAiSettings>(builder.Configuration.GetSection("OpenAI"));
+
 builder.Services.AddMemoryCache();
 
 builder.Services.AddControllers();
@@ -98,8 +105,6 @@ builder.Services.AddCors(options =>
   .AllowAnyMethod()
   .AllowAnyHeader());
 });
-builder.Services.AddDbContext<AppDbContext>(opt => opt.UseMySQL(builder.Configuration.GetConnectionString("DevString")!));
-
 
 builder.Services.AddEndpointsApiExplorer();
 

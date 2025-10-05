@@ -24,7 +24,7 @@ namespace Host.Controllers.V1Controllers
         [HttpPost]
         [SwaggerOperation(Summary = "Create a new court", Description = "Registers a new court in the system.")]
         public async Task<IActionResult> CreateCourt([FromForm] CourtCreateRequestDto request)
-        {
+        { 
             var result = await _courtService.CreateCourtAsync(request);
             return Ok(result);
         }

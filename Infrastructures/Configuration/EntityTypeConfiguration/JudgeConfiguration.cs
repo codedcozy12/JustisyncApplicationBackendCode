@@ -14,7 +14,6 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
                    .IsRequired();
 
             builder.Property(r => r.AppointmentDate)
-                   .HasColumnType("datetime2")
                    .IsRequired(false);
             builder.HasOne(r => r.User)
                    .WithMany()

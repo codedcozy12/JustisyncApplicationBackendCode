@@ -39,7 +39,7 @@ namespace Application.Service
             }
             var notification = new Notification
             {
-                ToId = user.Id,
+                UserId = user.Id,
                 Message = dto.Message,
                 Title = dto.Title,
                 IsRead = false,
@@ -48,7 +48,7 @@ namespace Application.Service
             await _notificationRepository.AddNotificationAsync(notification);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("Notification created with ID: {NotificationId}", notification.Id);
-            await _auditLogService.LogActionAsync(notification.ToId,"CreateNotification",nameof(Notification),notification.Id, $"Notification created with ID: {notification.Id}", Role.admin.ToString());
+            await _auditLogService.LogActionAsync(notification.UserId,"CreateNotification",nameof(Notification),notification.Id, $"Notification created with ID: {notification.Id}", Role.admin.ToString());
             return new ResponseDto<Guid>
             {
                 Data = notification.Id,
@@ -86,7 +86,7 @@ namespace Application.Service
             var notificationDto = new NotificationDto
             {
                 Id = notification.Id,
-                ToId = notification.ToId,
+                ToId = notification.UserId,
                 Message = notification.Message,
                 IsRead = notification.IsRead,
                 Title = notification.Title,
@@ -105,7 +105,7 @@ namespace Application.Service
             var notificationDtos = notifications.Select(n => new NotificationDto
             {
                 Id = n.Id,
-                ToId = n.ToId,
+                ToId = n.UserId,
                 Message = n.Message,
                 IsRead = n.IsRead,
                 Title = n.Title,
@@ -124,7 +124,7 @@ namespace Application.Service
             var notificationDtos = notifications.Select(n => new NotificationDto
             {
                 Id = n.Id,
-                ToId = n.ToId,
+                ToId = n.UserId,
                 Message = n.Message,
                 IsRead = n.IsRead,
                 Title = n.Title,
@@ -166,7 +166,7 @@ namespace Application.Service
             {
                 var notification = new Notification
                 {
-                    ToId = user.Id,
+                    UserId = user.Id,
                     Message = manyNotificationRequestDto.Message,
                     Title = manyNotificationRequestDto.Title,
                     IsRead = false,
@@ -205,14 +205,14 @@ namespace Application.Service
             var updatedDto = new NotificationDto
             {
                 Id = notification.Id,
-                ToId = notification.ToId,
+                ToId = notification.UserId,
                 Message = notification.Message,
                 IsRead = notification.IsRead,
                 Title = notification.Title,
                 DateCreated = notification.DateCreated
             };
             _logger.LogInformation("Notification with ID: {NotificationId} updated successfully", notificationId);
-            await _auditLogService.LogActionAsync(notification.ToId, "UpdateNotification", nameof(Notification), notification.Id, $"Notification updated with ID: {notification.Id}", Role.admin.ToString());
+            await _auditLogService.LogActionAsync(notification.UserId, "UpdateNotification", nameof(Notification), notification.Id, $"Notification updated with ID: {notification.Id}", Role.admin.ToString());
             return new ResponseDto<NotificationDto>
             {
                 Data = updatedDto,

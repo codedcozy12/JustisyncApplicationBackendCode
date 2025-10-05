@@ -12,51 +12,48 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
 
             builder.HasKey(u => u.Id);
 
-            builder.Property(u => u.Username)
-                .IsRequired()
-                .HasMaxLength(50);
-
-            builder.Property(u => u.Email)
-                .IsRequired()
-                .HasMaxLength(100);
-
-            builder.Property(u => u.PasswordHash)
-                .IsRequired();
-
-            builder.Property(u => u.FirstName)
-                .IsRequired()
-                .HasMaxLength(50);
-
-            builder.Property(u => u.LastName)
-                .IsRequired()
-                .HasMaxLength(50);
-
-            builder.Property(u => u.MiddleName)
-                .IsRequired()
-                .HasMaxLength(50);
-
-            builder.Property(u => u.PhoneNumber)
-                .IsRequired()
-                .HasMaxLength(20);
+            builder.Property(u => u.Username).IsRequired();
+            builder.Property(u => u.Email).IsRequired();
+            builder.Property(u => u.PasswordHash).IsRequired();
+            builder.Property(u => u.FirstName).IsRequired();
+            builder.Property(u => u.LastName).IsRequired();
+            builder.Property(u => u.MiddleName).IsRequired();
+            builder.Property(u => u.PhoneNumber).IsRequired();
 
             builder.Property(u => u.Role)
-                .IsRequired()
                 .HasConversion<string>()
-                .HasMaxLength(20);
-
-            builder.Property(u => u.ProfilePictureUrl)
-                .HasMaxLength(255);
+                .IsRequired();
 
             builder.Property(u => u.Accountstatus)
-                .IsRequired()
                 .HasConversion<string>()
-                .HasMaxLength(20);
+                .IsRequired();
 
-            builder.Property<DateTime>("CreatedAt")
-                .HasDefaultValueSql("GETUTCDATE()");
+            builder.HasMany(u => u.UserChats)
+                   .WithOne(c => c.User)
+                   .HasForeignKey(c => c.UserId)
+                   .OnDelete(DeleteBehavior.Restrict);
 
-            builder.Property<DateTime?>("UpdatedAt")
-                .IsRequired(false);
+            builder.HasMany(u => u.SentMessages)
+                   .WithOne(m => m.Sender)
+                   .HasForeignKey(m => m.SenderId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(u => u.ReceivedMessages)
+                   .WithOne(m => m.Receiver)
+                   .HasForeignKey(m => m.ReceiverId)
+                   .OnDelete(DeleteBehavior.Restrict);
+
+            builder.HasMany(u => u.UserCourtSessions)
+                   .WithOne(ucs => ucs.User)
+                   .HasForeignKey(ucs => ucs.UserId);
+
+            builder.HasMany(u => u.Notifications)
+                   .WithOne(n => n.User)
+                   .HasForeignKey(n => n.UserId);
+
+            builder.HasMany(u => u.AIConversationSessions)
+                   .WithOne(a => a.User)
+                   .HasForeignKey(a => a.UserId);
         }
     }
 }

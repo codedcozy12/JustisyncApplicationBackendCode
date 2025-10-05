@@ -17,6 +17,6 @@ namespace Domain.Entities
         public string SessionLink { get; set; } = default!;
         public Guid RecordedByUserId { get; set; }         
         public required Case Case { get; set; }
-        public CourtSessionStatus CourtSession { get; set; }
+        public CourtSession CourtSession { get; set; }
     }
 }

@@ -13,10 +13,6 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
       
             builder.HasKey(a => a.Id);
 
-            builder.Property(a => a.Id)
-                   .ValueGeneratedOnAdd()
-                   .HasDefaultValueSql("NEWID()");
-
             builder.Property(a => a.Role)
                    .IsRequired()
                    .HasMaxLength(100);
@@ -29,8 +25,7 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
             builder.Property(a => a.Details)
                    .HasMaxLength(2000);
             builder.Property(a => a.Timestamp)
-                   .IsRequired()
-                   .HasDefaultValueSql("GETUTCDATE()");
+                   .IsRequired();
         
             builder.HasIndex(a => a.UserId);
             builder.HasIndex(a => a.EntityId);
