@@ -15,6 +15,7 @@ namespace Domain.Entities
             public string Location { get; set; } = default!;
             public ICollection<Registrar> Registrars { get; set; } = [];
             public ICollection<JudgeCourt> JudgeCourts { get; set; } = [];
+            public ICollection<CourtJurisdiction> CourtJurisdiction { get; set; } = [];
             public ICollection<Judge> Judges { get; set; } = [];
             public bool IsActive { get; set; } = true;
             public ICollection<CourtSession> CourtSessions { get; set; } = [];

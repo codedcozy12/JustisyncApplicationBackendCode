@@ -12,6 +12,8 @@ namespace Domain.Entities
         public Court Court { get; set; } = default!;
         public required Guid CourtId { get; set; }
         public CaseStatus Status { get; set; } = CaseStatus.Initiated;
+        public CaseApprovalStatus ApprovalStatus { get; set; } = CaseApprovalStatus.pending;
+        public string? RejectionReason { get; set; } = default;
         public ICollection<CaseParty> CaseParties { get; set; } = [];
         public required Guid ClientId { get; set; }
         public User Client { get; set; } = default!;
