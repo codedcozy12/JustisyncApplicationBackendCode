@@ -2,8 +2,6 @@
 {
     public class Judge : BaseEntities
     {
-        public Guid CourtId { get; set; }
-        public Court Court { get; set; }
         public ICollection<Case> Cases { get; set; } = [];
         public ICollection<JudgeCourt> JudgeCourts { get; set; } = [];
         public DateTime? AppointmentDate { get; set; }

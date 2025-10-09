@@ -10,17 +10,17 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
             {      
                 builder.ToTable("Judges");
                 builder.HasKey(r => r.Id);
-            builder.Property(r => r.CourtId)
-                   .IsRequired();
+         
 
             builder.Property(r => r.AppointmentDate)
                    .IsRequired(false);
             builder.HasOne(r => r.User)
                    .WithMany()
                    .HasForeignKey(r => r.UserId);
-            builder.HasOne(x => x.Court)
-                .WithMany(x => x.Judges)
-                .HasForeignKey(x => x.CourtId)
+
+            builder.HasMany(x => x.JudgeCourts)
+                .WithOne(x => x.Judge)
+                .HasForeignKey(x => x.JudgeId)
                        .OnDelete(DeleteBehavior.Restrict);
                 builder.Property(r => r.UserId)
                        .IsRequired();

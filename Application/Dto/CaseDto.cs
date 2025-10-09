@@ -9,8 +9,8 @@ namespace Application.Dto
         public string CaseNumber { get; set; } = default!;
         public Guid ClientId { get; set; }
         public Guid LawyerId { get; set; }
-        public Guid CourtId { get; set; }
-        public Guid JudgeId { get; set; }
+        public Guid? CourtId { get; set; }
+        public Guid? JudgeId { get; set; }
         public OffenseType OffenseType { get; set; }
         public string OffenseLocation { get; set; } = default!;
         public string Description { get; set; } = default!;
@@ -27,8 +27,8 @@ namespace Application.Dto
         public required string Title { get; set; }
         public Guid ClientId { get; set; }
         public Guid LawyerId { get; set; }
-        public Guid CourtId { get; set; }
-        public Guid JudgeId { get; set; }
+        //public Guid CourtId { get; set; }
+        //public Guid JudgeId { get; set; }
         public OffenseType OffenseType { get; set; }
         public string OffenseLocation { get; set; } = default!;
         public string Description { get; set; } = default!;

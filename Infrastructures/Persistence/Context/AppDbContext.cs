@@ -25,6 +25,7 @@ namespace Infrastructures.Persistence.Context
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<CaseParty> CaseParties { get; set; }
         public DbSet<JudgeCourt> JudgeCourts { get; set; }
+        public DbSet<Jurisdiction> Jurisdictions { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

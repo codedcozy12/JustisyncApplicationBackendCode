@@ -1,6 +1,6 @@
 ﻿namespace Domain.Entities
 {
-    public class CourtJurisdiction
+    public class Jurisdiction
     {
         public Guid Id { get; set; }
         public string SubjectMatter { get; set; } = string.Empty;

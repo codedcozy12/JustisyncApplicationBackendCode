@@ -12,15 +12,17 @@ namespace Application.Service
     {
         private readonly ILogger<CourtService> _logger;
         private readonly ICourtRepository _courtRepository;
+        private readonly IJurisdictionRepository _jurisdictionRepository;
         private readonly IUnitOfWork _unitofwork;
         private readonly IAuditLogService _auditLogService;
 
-        public CourtService(ILogger<CourtService> logger, ICourtRepository courtRepository, IUnitOfWork unitOfWork, IAuditLogService auditLogService)
+        public CourtService(ILogger<CourtService> logger, ICourtRepository courtRepository, IUnitOfWork unitOfWork, IAuditLogService auditLogService, IJurisdictionRepository jurisdictionRepository)
         {
             _logger = logger;
             _courtRepository = courtRepository;
             _unitofwork = unitOfWork;
             _auditLogService = auditLogService;
+            _jurisdictionRepository = jurisdictionRepository;
         }
         public async Task<ResponseDto<CourtCreateRequestDto>> CreateCourtAsync(CourtCreateRequestDto request)
         {
@@ -67,10 +69,29 @@ namespace Application.Service
                 State = request.State,
                 ContactEmail = request.ContactEmail,
                 ContactPhone = request.ContactPhone,
-                //Jurisdiction = request.Jurisdiction,
-                Registrars = new List<Registrar>(),
                 IsActive = true
             };
+            if (request.JurisdictionIds.Count > 0)
+            {
+                IEnumerable<Jurisdiction> jurisdictions = []; 
+                foreach (var jurisdictionId in request.JurisdictionIds)
+                {
+                    var jurisdiction = await _jurisdictionRepository.GetByIdAsync(jurisdictionId);
+                    if (jurisdiction == null)
+                    {
+                        _logger.LogWarning("Court creation failed: Jurisdiction with ID {JurisdictionId} not found", jurisdictionId);
+                        return new ResponseDto<CourtCreateRequestDto>
+                        {
+                            IsSuccess = false,
+                            Message = $"Jurisdiction with ID {jurisdictionId} not found",
+                            Data = null
+                        };
+                    }
+                    jurisdictions = jurisdictions.Append(jurisdiction);
+                }
+                if (jurisdictions.Count() > 0)
+                    court.Jurisdictions = jurisdictions.ToList();
+            }
             await _courtRepository.AddAsync(court);
             await _unitofwork.SaveChangesAsync();
             _logger.LogInformation("Court created successfully with ID: {Id}", court.Id);
@@ -110,7 +131,12 @@ namespace Application.Service
                 State = c.State,
                 ContactEmail = c.ContactEmail,
                 ContactPhone = c.ContactPhone,
-                //Jurisdiction = c.Jurisdiction,
+                Jurisdictions = c.Jurisdictions.Select(a => new JurisdictionDto
+                {
+                    Id = a.Id,
+                    MonetaryLimit = a.MonetaryLimit,
+                    SubjectMatter = a.SubjectMatter
+                }).ToList(),
                 IsActive = c.IsActive
             }).ToList();
             return new ResponseDto<IEnumerable<CourtDto>>
@@ -143,7 +169,12 @@ namespace Application.Service
                 State = c.State,
                 ContactEmail = c.ContactEmail,
                 ContactPhone = c.ContactPhone,
-                //Jurisdiction = c.Jurisdiction,
+                Jurisdictions = c.Jurisdictions.Select(a => new JurisdictionDto
+                {
+                    Id = a.Id,
+                    MonetaryLimit = a.MonetaryLimit,
+                    SubjectMatter = a.SubjectMatter
+                }).ToList(),
                 IsActive = c.IsActive
             }).ToList();
             return new ResponseDto<IEnumerable<CourtDto>>
@@ -175,7 +206,12 @@ namespace Application.Service
                 State = court.State,
                 ContactEmail = court.ContactEmail,
                 ContactPhone = court.ContactPhone,
-                //Jurisdiction = court.Jurisdiction,
+                Jurisdictions = court.Jurisdictions.Select(a => new JurisdictionDto
+                {
+                    Id = a.Id,
+                    MonetaryLimit = a.MonetaryLimit,
+                    SubjectMatter = a.SubjectMatter
+                }).ToList(),
                 IsActive = court.IsActive
             };
             _logger.LogInformation("Court retrieved successfully with Id: {CourtId}", court.Id);
@@ -208,7 +244,6 @@ namespace Application.Service
             }
             court.ContactEmail = request.ContactEmail;
             court.ContactPhone = request.ContactPhone;
-            //court.Jurisdiction = request.Jurisdiction;
             court.IsActive = request.IsActive;
             court.IsDeleted = !request.IsActive;
             await _courtRepository.UpdateAsync(court);

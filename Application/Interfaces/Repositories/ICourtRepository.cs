@@ -13,5 +13,6 @@ namespace Application.Interfaces.Repositories
         Task<IEnumerable<Court>> GetByRegistrarIdAsync(Guid registrarId);
         Task<IEnumerable<Court>> GetActiveCourtsAsync();
         Task<int> GetCourtsCount();
+        Task<Court?> GetJudgeActiveCourt(Guid judgeId);
     }
 }

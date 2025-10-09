@@ -7,36 +7,34 @@ namespace Application.Validators
     {
         public CourtCreateRequestValidator()
         {
-            RuleFor(x => x.Name)
+            RuleFor(c => c.Name)
             .NotEmpty().WithMessage("Court name is required.")
-            .MaximumLength(200).WithMessage("Court name must not exceed 200 characters.");
+            .MaximumLength(200).WithMessage("Court name cannot exceed 200 characters.");
 
-            RuleFor(x => x.Type)
+            RuleFor(c => c.Type)
                 .NotEmpty().WithMessage("Court type is required.")
-                .MaximumLength(100).WithMessage("Court type must not exceed 100 characters.");
+                .MaximumLength(100).WithMessage("Court type cannot exceed 100 characters.");
 
-            RuleFor(x => x.Address)
+            RuleFor(c => c.Address)
                 .NotEmpty().WithMessage("Address is required.")
-                .MaximumLength(300).WithMessage("Address must not exceed 300 characters.");
+                .MaximumLength(300).WithMessage("Address cannot exceed 300 characters.");
 
-            RuleFor(x => x.City)
+            RuleFor(c => c.City)
                 .NotEmpty().WithMessage("City is required.")
-                .MaximumLength(100);
+                .MaximumLength(100).WithMessage("City cannot exceed 100 characters.");
 
-            RuleFor(x => x.State)
+            RuleFor(c => c.State)
                 .NotEmpty().WithMessage("State is required.")
-                .MaximumLength(100);
+                .MaximumLength(100).WithMessage("State cannot exceed 100 characters.");
 
-            RuleFor(x => x.ContactEmail)
+            RuleFor(c => c.ContactEmail)
                 .NotEmpty().WithMessage("Contact email is required.")
-                .EmailAddress().WithMessage("Invalid email format.");
+                .EmailAddress().WithMessage("Contact email must be a valid email address.")
+                .MaximumLength(150).WithMessage("Contact email cannot exceed 150 characters.");
 
-            RuleFor(x => x.ContactPhone)
+            RuleFor(c => c.ContactPhone)
                 .NotEmpty().WithMessage("Contact phone is required.")
-                .Matches(@"^\+?[0-9]{7,15}$").WithMessage("Invalid phone number format. Use digits only and optional + prefix.");
-
-            //RuleFor(x => x.Jurisdiction)
-            //    .IsInEnum().WithMessage("Invalid jurisdiction value.");
+                .MaximumLength(20).WithMessage("Contact phone cannot exceed 20 characters.");
         }
     }
 }

@@ -14,6 +14,7 @@ namespace Application.Service
     public class JudgeService : IJudgeService
     {
         private readonly IJudgeRepository _judgeRepository;
+        private readonly ICourtRepository _courtRepository;
         private readonly IUserRepository _userRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly ILogger<JudgeService> _logger;
@@ -21,7 +22,7 @@ namespace Application.Service
         private readonly IUploadService _uploadService;
         private readonly IEmailService _emailService;
         private readonly IAuditLogService _auditLogService;
-        public JudgeService( IJudgeRepository judgeRepository, IUnitOfWork unitOfWork, ILogger<JudgeService> logger, ICacheService cacheService, IUploadService uploadService, IEmailService emailService,IUserRepository userRepository, IAuditLogService auditLogService)
+        public JudgeService( IJudgeRepository judgeRepository,IUnitOfWork unitOfWork, ILogger<JudgeService> logger, ICacheService cacheService, IUploadService uploadService, IEmailService emailService, IUserRepository userRepository, IAuditLogService auditLogService, ICourtRepository courtRepository)
         {
             _judgeRepository = judgeRepository;
             _unitOfWork = unitOfWork;
@@ -31,26 +32,64 @@ namespace Application.Service
             _emailService = emailService;
             _userRepository = userRepository;
             _auditLogService = auditLogService;
+            _courtRepository = courtRepository;
         }
-        public async Task<JudgeUpdateRequestDto> AssignJudgeToCourtAsync(AssignJudgeRequestDto dto)
+        public async Task<ResponseDto<JudgeUpdateRequestDto>> AssignJudgeToCourtAsync(AssignJudgeRequestDto dto)
         {
             var judge = await _judgeRepository.GetByIdAsync(dto.JudgeId);
             if (judge == null)
             {
                 _logger.LogWarning("Judge with Id: {JudgeId} not found", dto.JudgeId);
-                return null;
+                return ResponseDto<JudgeUpdateRequestDto>.Fail($"Judge with Id: {dto.JudgeId} not found");
             }
-            judge.CourtId = dto.CourtId;
+
+            var court = await _courtRepository.GetByIdAsync(dto.CourtId);
+            if (court == null)
+            {
+                _logger.LogWarning("Court with Id: {CourtId} not found", dto.CourtId);
+                return ResponseDto<JudgeUpdateRequestDto>.Fail($"Court with Id: {dto.CourtId} not found");
+            }
+
+            
+            var existingActiveJudge = await _judgeRepository.GetJudgeByCourtIdAsync(dto.CourtId);
+            if (existingActiveJudge != null)
+            {
+                _logger.LogWarning("Court with Id: {CourtId} already has an active judge.", dto.CourtId);
+                return ResponseDto<JudgeUpdateRequestDto>.Fail("A judge is already assigned to this court. Please remove the current judge before assigning a new one.");
+            }
+
+            
+            bool isJudgeActiveElsewhere = judge.JudgeCourts.Any(jc => jc.IsActive);
+            if (isJudgeActiveElsewhere)
+            {
+                _logger.LogWarning("Judge with Id: {JudgeId} is already assigned to another active court.", dto.JudgeId);
+                return ResponseDto<JudgeUpdateRequestDto>.Fail("This judge is already assigned to another active court.");
+            }
+
+          
+            var judgeCourt = new JudgeCourt
+            {
+                JudgeId = dto.JudgeId,
+                CourtId = dto.CourtId,
+                AssignedDate = DateTime.UtcNow,
+                IsActive = true
+            };
+
+            judge.JudgeCourts.Add(judgeCourt);
             judge.AppointmentDate = dto.AppointmentDate;
+
             await _judgeRepository.UpdateAsync(judge);
             await _unitOfWork.SaveChangesAsync();
+
             _logger.LogInformation("Judge with Id: {JudgeId} assigned to Court with Id: {CourtId}", dto.JudgeId, dto.CourtId);
-            return new JudgeUpdateRequestDto
+
+            return ResponseDto<JudgeUpdateRequestDto>.Success(new JudgeUpdateRequestDto
             {
                 CourtAssignedId = dto.CourtId,
                 AppointmentDate = dto.AppointmentDate
-            };
+            });
         }
+
         public async Task<ResponseDto<Guid>> CreateJudgeAsync(JudgeCreateRequestDto request)
         {
             if (request == null)
@@ -97,9 +136,15 @@ namespace Application.Service
             var judge = new Judge
             {
                 UserId = user.Id,
-                CourtId = request.CourtAssignedId,
                 AppointmentDate = request.AppointmentDate
             };
+            judge.JudgeCourts.Add(new JudgeCourt
+            {
+                AssignedDate = DateTime.UtcNow,
+                CourtId = request.CourtAssignedId,
+                IsActive = true,
+                JudgeId = judge.Id
+            });
             await _judgeRepository.AddAsync( judge);
             await _userRepository.AddAsync(user);
             await _unitOfWork.SaveChangesAsync();
@@ -158,7 +203,7 @@ namespace Application.Service
                 MiddleName = j.User.MiddleName,
                 LastName = j.User.LastName,
                 FirstName = j.User.FirstName,
-                CourtAssignedId = j.CourtId,
+                CourtAssignedId = j.JudgeCourts.FirstOrDefault(a => a.IsActive == true)?.CourtId,
                 IsActive = !j.IsDeleted,
                 AppointmentDate = j.AppointmentDate
             }).ToList();
@@ -194,7 +239,7 @@ namespace Application.Service
                 MiddleName = judge.User.MiddleName,
                 LastName = judge.User.LastName,
                 FirstName = judge.User.FirstName,
-                CourtAssignedId = judge.CourtId,
+                CourtAssignedId = judge.JudgeCourts.FirstOrDefault(a => a.IsActive == true)?.CourtId,
                 AppointmentDate = judge.AppointmentDate,
                 ProfilePictureUrl = judge.User.ProfilePictureUrl,
                 Email = judge.User.Email,
@@ -230,7 +275,7 @@ namespace Application.Service
                 MiddleName = j.User.MiddleName,
                 LastName = j.User.LastName,
                 FirstName = j.User.FirstName,
-                CourtAssignedId = j.CourtId,
+                CourtAssignedId = j.JudgeCourts.FirstOrDefault(a => a.IsActive == true)?.CourtId,
                 AppointmentDate = j.AppointmentDate
             }).ToList();
             _logger.LogInformation("Retrieved {Count} judges for Court with Id: {CourtId} successfully", judgeDtos.Count(), courtId);
@@ -249,7 +294,7 @@ namespace Application.Service
                 _logger.LogWarning("Judge with Id: {JudgeId} not found", judgeId);
                 return null;
             }
-            judge.CourtId = request.CourtAssignedId;
+           // judge.CourtId = request.CourtAssignedId;
             judge.AppointmentDate = request.AppointmentDate;
             await _judgeRepository.UpdateAsync(judge);
             await _unitOfWork.SaveChangesAsync();

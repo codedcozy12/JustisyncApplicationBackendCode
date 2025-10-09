@@ -41,7 +41,7 @@ namespace Infrastructures.Persistence.Repository
         {
             return await _context.Courts
                                  .Include(c => c.Registrars)
-                                 .Include(c => c.Judges)
+                                 .Include(c => c.JudgeCourts)
                                  .FirstOrDefaultAsync(c => c.Id == id);
         }
         public async Task<IEnumerable<Court>> GetByRegistrarIdAsync(Guid registrarId)
@@ -56,9 +56,18 @@ namespace Infrastructures.Persistence.Repository
             return await _context.Courts.CountAsync();
         }
 
+        public async Task<Court?> GetJudgeActiveCourt(Guid judgeId)
+        {
+            return await _context.Courts
+                                 .Include(c => c.JudgeCourts)
+                                 .ThenInclude(jc => jc.Judge)
+                                 .FirstOrDefaultAsync(c => c.JudgeCourts.Any(jc => jc.JudgeId == judgeId && jc.IsActive));
+        }
+
         public async Task UpdateAsync(Court court)
         {
             _context.Courts.Update(court);
+            await Task.CompletedTask;
         }
     }
 }

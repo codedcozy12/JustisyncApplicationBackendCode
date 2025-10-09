@@ -58,13 +58,16 @@ namespace Infrastructures.Persistence.Repository
         {
             return await _context.Judges
                                  .Include(j => j.User)
-                                 .Where(j => j.CourtId == courtId)
+                                 .Include(a => a.JudgeCourts)
+                                 .Where(j => j.JudgeCourts.Any(a => a.CourtId== courtId))
                                  .ToListAsync();
         }
         public async Task<Judge?> GetByIdAsync(Guid judgeId)
         {
             return await _context.Judges
                                  .Include(j => j.User)
+                                 .Include(a => a.JudgeCourts)
+                                  .ThenInclude(a => a.Court)
                                  .FirstOrDefaultAsync(j => j.Id == judgeId);
         }
         public async Task<Judge?> GetByUserIdAsync(Guid userId)
@@ -76,12 +79,13 @@ namespace Infrastructures.Persistence.Repository
         public async Task UpdateAsync(Judge judge)
         {
             _context.Judges.Update(judge);
+            await Task.CompletedTask;
         }
 
         public async Task<Judge?> GetJudgeByCourtIdAsync(Guid courtId)
         {
-            return await _context.Judges
-                .FirstOrDefaultAsync(j => j.CourtId == courtId && !j.IsDeleted);
+            return await _context.Judges.Include(a => a.JudgeCourts)
+                .FirstOrDefaultAsync(j => j.JudgeCourts.Any(a => a.CourtId == courtId && a.IsActive == true));
         }
     }
 }

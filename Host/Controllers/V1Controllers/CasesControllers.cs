@@ -44,9 +44,9 @@ namespace Host.Controllers.V1Controllers
         }
         [HttpPut("complete/{caseId:guid}")]
         [SwaggerOperation(Summary = "Complete case filing", Description = "Completes the filing of a case by adding necessary documents and descriptions.")]
-        public async Task<IActionResult> CompleteCaseFiling(Guid caseId, [FromQuery] Guid lawyerId, DocumentCreateRequestDto document, string Description)
+        public async Task<IActionResult> CompleteCaseFiling(Guid caseId, [FromQuery] Guid lawyerId, [FromQuery]Guid courtId,DocumentCreateRequestDto document, string Description)
         {
-            var result = await _caseService.CompleteCaseFilingAsync(caseId, lawyerId, Description, document);
+            var result = await _caseService.CompleteCaseFilingAsync(caseId, lawyerId,courtId, Description, document);
             return Ok(result);
         }
         [HttpGet("client/{clientId:guid}")]

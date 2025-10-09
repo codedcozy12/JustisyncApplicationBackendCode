@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructures.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251009095557_progress")]
-    partial class progress
+    [Migration("20251009192754_createcrt")]
+    partial class createcrt
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -24,6 +24,21 @@ namespace Infrastructures.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+
+            modelBuilder.Entity("CourtJurisdictions", b =>
+                {
+                    b.Property<Guid>("CourtId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("JurisdictionId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("CourtId", "JurisdictionId");
+
+                    b.HasIndex("JurisdictionId");
+
+                    b.ToTable("CourtJurisdictions", (string)null);
+                });
 
             modelBuilder.Entity("CourtSessionUser", b =>
                 {
@@ -139,6 +154,9 @@ namespace Infrastructures.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("varchar(4000)");
 
+                    b.Property<int>("ApprovalStatus")
+                        .HasColumnType("int");
+
                     b.Property<string>("CaseNumber")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -147,7 +165,7 @@ namespace Infrastructures.Migrations
                     b.Property<Guid>("ClientId")
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("CourtId")
+                    b.Property<Guid?>("CourtId")
                         .HasColumnType("char(36)");
 
                     b.Property<string>("CreatedBy")
@@ -167,7 +185,7 @@ namespace Infrastructures.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<Guid>("JudgeId")
+                    b.Property<Guid?>("JudgeId")
                         .HasColumnType("char(36)");
 
                     b.Property<Guid>("LawyerId")
@@ -192,6 +210,9 @@ namespace Infrastructures.Migrations
 
                     b.Property<Guid>("RegistrarId")
                         .HasColumnType("char(36)");
+
+                    b.Property<string>("RejectionReason")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Status")
                         .IsRequired()
@@ -457,28 +478,27 @@ namespace Infrastructures.Migrations
             modelBuilder.Entity("Domain.Entities.Court", b =>
                 {
                     b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasMaxLength(300)
-                        .HasColumnType("varchar(300)");
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("City")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("ContactEmail")
                         .IsRequired()
                         .HasMaxLength(150)
                         .HasColumnType("varchar(150)");
 
-                    b.Property<string>("ContactEmail")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
                     b.Property<string>("ContactPhone")
                         .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("varchar(50)");
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("longtext");
@@ -499,21 +519,21 @@ namespace Infrastructures.Migrations
 
                     b.Property<string>("Location")
                         .IsRequired()
-                        .HasMaxLength(250)
-                        .HasColumnType("varchar(250)");
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("longtext");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)");
 
                     b.Property<string>("State")
                         .IsRequired()
-                        .HasMaxLength(150)
-                        .HasColumnType("varchar(150)");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -642,9 +662,6 @@ namespace Infrastructures.Migrations
                     b.Property<DateTime?>("AppointmentDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<Guid>("CourtId")
-                        .HasColumnType("char(36)");
-
                     b.Property<string>("CreatedBy")
                         .HasColumnType("longtext");
 
@@ -665,8 +682,6 @@ namespace Infrastructures.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CourtId");
-
                     b.HasIndex("UserId");
 
                     b.ToTable("Judges", (string)null);
@@ -680,11 +695,39 @@ namespace Infrastructures.Migrations
                     b.Property<Guid>("CourtId")
                         .HasColumnType("char(36)");
 
+                    b.Property<DateTime>("AssignedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
                     b.HasKey("JudgeId", "CourtId");
 
                     b.HasIndex("CourtId");
 
                     b.ToTable("JudgeCourts", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.Jurisdiction", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<decimal?>("MonetaryLimit")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("SubjectMatter")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Jurisdictions", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Lawyer", b =>
@@ -925,6 +968,21 @@ namespace Infrastructures.Migrations
                     b.ToTable("UserCourtSessions", (string)null);
                 });
 
+            modelBuilder.Entity("CourtJurisdictions", b =>
+                {
+                    b.HasOne("Domain.Entities.Court", null)
+                        .WithMany()
+                        .HasForeignKey("CourtId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Jurisdiction", null)
+                        .WithMany()
+                        .HasForeignKey("JurisdictionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("CourtSessionUser", b =>
                 {
                     b.HasOne("Domain.Entities.CourtSession", null)
@@ -973,14 +1031,12 @@ namespace Infrastructures.Migrations
                     b.HasOne("Domain.Entities.Court", "Court")
                         .WithMany("CourtCases")
                         .HasForeignKey("CourtId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Domain.Entities.Judge", "Judge")
                         .WithMany("Cases")
                         .HasForeignKey("JudgeId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("Domain.Entities.Lawyer", "Lawyer")
                         .WithMany()
@@ -1108,7 +1164,7 @@ namespace Infrastructures.Migrations
                     b.HasOne("Domain.Entities.Court", "Court")
                         .WithMany("CourtSessions")
                         .HasForeignKey("CourtId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.User", "Judge")
@@ -1137,19 +1193,11 @@ namespace Infrastructures.Migrations
 
             modelBuilder.Entity("Domain.Entities.Judge", b =>
                 {
-                    b.HasOne("Domain.Entities.Court", "Court")
-                        .WithMany("Judges")
-                        .HasForeignKey("CourtId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
                     b.HasOne("Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Court");
 
                     b.Navigation("User");
                 });
@@ -1261,8 +1309,6 @@ namespace Infrastructures.Migrations
                     b.Navigation("CourtSessions");
 
                     b.Navigation("JudgeCourts");
-
-                    b.Navigation("Judges");
 
                     b.Navigation("Registrars");
                 });

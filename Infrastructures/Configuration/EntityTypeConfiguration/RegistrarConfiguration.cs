@@ -13,9 +13,10 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
             builder.HasKey(r => r.Id);
 
             builder.HasOne(r => r.Court)
-                   .WithMany() 
-                   .HasForeignKey(r => r.CourtId)
-                   .OnDelete(DeleteBehavior.Restrict); 
+               .WithMany(c => c.Registrars)
+               .HasForeignKey(r => r.CourtId)
+               .OnDelete(DeleteBehavior.Cascade);
+
 
             builder.Property(r => r.CourtId)
                    .IsRequired();

@@ -4,7 +4,6 @@ namespace Domain.Entities
 {
     public class Court : BaseEntities
     {
-            public Guid Id { get; set; } = Guid.NewGuid();
             public required string Name { get; set; }
             public required string Type { get; set; }
             public required string Address { get; set; }
@@ -15,8 +14,7 @@ namespace Domain.Entities
             public string Location { get; set; } = default!;
             public ICollection<Registrar> Registrars { get; set; } = [];
             public ICollection<JudgeCourt> JudgeCourts { get; set; } = [];
-            public ICollection<CourtJurisdiction> CourtJurisdiction { get; set; } = [];
-            public ICollection<Judge> Judges { get; set; } = [];
+            public ICollection<Jurisdiction> Jurisdictions { get; set; } = [];
             public bool IsActive { get; set; } = true;
             public ICollection<CourtSession> CourtSessions { get; set; } = [];
             public ICollection<Case> CourtCases { get; set; } = [];

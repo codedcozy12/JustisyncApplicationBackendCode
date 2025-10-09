@@ -12,6 +12,6 @@ namespace Application.Interfaces.Service
         Task<bool> DeleteJudgeAsync(Guid judgeId);
         Task<ResponseDto<IEnumerable<JudgeDto>>> GetJudgesByCourtAsync(Guid courtId);
         Task<ResponseDto<string>> SendEmailConfirmationCode(string email);
-        Task<JudgeUpdateRequestDto> AssignJudgeToCourtAsync(AssignJudgeRequestDto dto);
+        Task<ResponseDto<JudgeUpdateRequestDto>> AssignJudgeToCourtAsync(AssignJudgeRequestDto dto);
     }
 }

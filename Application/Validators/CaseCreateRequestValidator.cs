@@ -18,11 +18,11 @@ namespace Application.Validators
         RuleFor(c => c.LawyerId)
             .NotEmpty().WithMessage("Lawyer ID is required. Each case must be assigned to a lawyer.");
 
-        RuleFor(c => c.CourtId)
-            .NotEmpty().WithMessage("Court ID is required. Please assign the case to a valid court.");
+        //RuleFor(c => c.CourtId)
+        //    .NotEmpty().WithMessage("Court ID is required. Please assign the case to a valid court.");
 
-        RuleFor(c => c.JudgeId)
-            .NotEmpty().WithMessage("Judge ID is required. A case must have an overseeing judge.");
+        //RuleFor(c => c.JudgeId)
+        //    .NotEmpty().WithMessage("Judge ID is required. A case must have an overseeing judge.");
 
         RuleFor(c => c.OffenseType)
             .IsInEnum().WithMessage("Invalid offense type specified.");

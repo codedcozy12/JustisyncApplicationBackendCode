@@ -18,6 +18,7 @@ namespace Application.Service
         private readonly ICasePartyRepository _casePartyRepository;
         private readonly ICaseProceedingRecordRepository _proceedingRepository;
         private readonly IJudgeRepository _judgeRepository;
+        private readonly ICourtRepository _courtRepository;
         private readonly IUnitOfWork _unitOfWork;
         private readonly INotificationService _notificationService;
         private readonly IEmailService _emailService;
@@ -28,7 +29,7 @@ namespace Application.Service
         private readonly ILogger<CaseService> _logger;
         private readonly IAuditLogService _auditLogService;
 
-        public CaseService(ICaseRepository caseRepository, ICasePartyRepository casePartyRepository, ICaseProceedingRecordRepository proceedingRepository, INotificationService notificationService, ILogger<CaseService> logger, IUnitOfWork unitOfWork, IAuditLogService auditLogService, ILawyerRepository lawyerRepository, IDocumentService documentService, IDocumentRepository documentRepository, IUploadService uploadService, IEmailService emailService, IJudgeRepository judgeRepository)
+        public CaseService(ICaseRepository caseRepository, ICasePartyRepository casePartyRepository, ICaseProceedingRecordRepository proceedingRepository, INotificationService notificationService, ILogger<CaseService> logger, IUnitOfWork unitOfWork, IAuditLogService auditLogService, ILawyerRepository lawyerRepository, IDocumentService documentService, IDocumentRepository documentRepository, IUploadService uploadService, IEmailService emailService, IJudgeRepository judgeRepository, ICourtRepository courtRepository)
         {
             _caseRepository = caseRepository;
             _casePartyRepository = casePartyRepository;
@@ -43,6 +44,7 @@ namespace Application.Service
             _uploadService = uploadService;
             _emailService = emailService;
             _judgeRepository = judgeRepository;
+            _courtRepository = courtRepository;
         }
         public async Task<ResponseDto<CaseDto>> AssignJudgeAndScheduleAsync(Guid caseId, Guid registrarId, Guid judgeId, DateTime scheduledDate)
         {
@@ -50,6 +52,17 @@ namespace Application.Service
                 registrarId, judgeId, caseId, scheduledDate);
 
             var caseEntity = await _caseRepository.GetCaseByIdAsync(caseId);
+            if (caseEntity == null)
+            {
+                return ResponseDto<CaseDto>.Fail("Case Not Found");
+            }
+
+            var judge = await _judgeRepository.GetByIdAsync(judgeId);
+
+            if (judge is null)
+            {
+                return ResponseDto<CaseDto>.Fail("Judge Not Found");
+            }
 
             foreach (var party in caseEntity.CaseParties)
             {
@@ -74,11 +87,10 @@ namespace Application.Service
 
             _logger.LogInformation("Judge {JudgeId} successfully assigned to Case {CaseId}", judgeId, caseId);
 
-            var SendMailJudge = await _judgeRepository.GetByIdAsync(judgeId);
-                {
+            
 
-                await SendMailToJudgeAsync(SendMailJudge.User.Email, SendMailJudge.User.FirstName, caseEntity.CaseNumber, SendMailJudge.Court.Name, scheduledDate);
-            }
+                await SendMailToJudgeAsync(judge.User.Email, judge.User.FirstName, caseEntity.CaseNumber, caseEntity.Court.Name, scheduledDate);
+           
 
             var responseData = new CaseDto
             {
@@ -102,11 +114,23 @@ namespace Application.Service
                 Data = responseData
             };
         }
-        public async Task<ResponseDto<CaseDto>> CompleteCaseFilingAsync(Guid caseId, Guid lawyerId, string Description, DocumentCreateRequestDto document)
+        public async Task<ResponseDto<CaseDto>> CompleteCaseFilingAsync(Guid caseId, Guid lawyerId,Guid courtId ,string Description, DocumentCreateRequestDto document)
         {
             var caseEntity = await _caseRepository.GetCaseByIdAsync(caseId);
             if (caseEntity == null)
                 return new ResponseDto<CaseDto> { IsSuccess = false, Message = "Case not found." };
+
+            var court = await _courtRepository.GetByIdAsync(courtId);
+            if (court == null)
+            {
+                return ResponseDto<CaseDto>.Fail("Court not found");
+            }
+            var judge = await _judgeRepository.GetJudgeByCourtIdAsync(court.Id);
+            if (judge == null)
+            {
+                return ResponseDto<CaseDto>.Fail("No judge assigned to the selected court");
+            }
+
 
             string path = "";
             if (document.FileUrl != null)
@@ -126,6 +150,8 @@ namespace Application.Service
             caseEntity.LawyerId = lawyerId;
             caseEntity.Description = Description;
             caseEntity.DateModified = DateTime.UtcNow;
+            caseEntity.CourtId = courtId;
+            caseEntity.JudgeId = judge.Id;
 
             await _caseRepository.UpdateCaseAsync(caseEntity);
             await _unitOfWork.SaveChangesAsync();
@@ -179,7 +205,7 @@ namespace Application.Service
             var cases = await _caseRepository.GetCasesByJudgeAsync(judgeId);
             if (cases == null)
             {
-                return new ResponseDto<IEnumerable<CaseDto?>> { IsSuccess = false, Message = "Case not found.", Data = null };
+                return new ResponseDto<IEnumerable<CaseDto>> { IsSuccess = false, Message = "Case not found.", Data = null };
             }
             return new ResponseDto<IEnumerable<CaseDto>>
             {
@@ -260,8 +286,6 @@ namespace Application.Service
                 Title = newCase.Title,
                 ClientId = clientId,
                 LawyerId = newCase.LawyerId,
-                CourtId = newCase.CourtId,
-                JudgeId = newCase.JudgeId,
                 OffenseType = newCase.OffenseType,
                 OffenseLocation = newCase.OffenseLocation,
                 Description = newCase.Description,
@@ -300,8 +324,8 @@ namespace Application.Service
                     CaseNumber = newCase.CaseNumber,
                     Title = newCase.Title,
                     LawyerId = newCase.LawyerId,
-                    CourtId = newCase.CourtId,
-                    JudgeId = newCase.JudgeId,
+                    CourtId = caseEntity.CourtId,
+                    JudgeId = caseEntity.JudgeId,
                     OffenseLocation = newCase.OffenseLocation,
                     OffenseType = newCase.OffenseType,
                     Description = newCase.Description
