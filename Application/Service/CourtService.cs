@@ -57,7 +57,6 @@ namespace Application.Service
                 };
             }
             _logger.LogInformation("Creating new court with name: {Name}", request.Name);
-
             var court = new Court
             {
                 Id = Guid.NewGuid(),
@@ -68,7 +67,6 @@ namespace Application.Service
                 State = request.State,
                 ContactEmail = request.ContactEmail,
                 ContactPhone = request.ContactPhone,
-                AllowedCaseTypes = request.AllowedCaseTypes,
                 //Jurisdiction = request.Jurisdiction,
                 Registrars = new List<Registrar>(),
                 IsActive = true
@@ -112,7 +110,6 @@ namespace Application.Service
                 State = c.State,
                 ContactEmail = c.ContactEmail,
                 ContactPhone = c.ContactPhone,
-                AllowedCaseTypes = c.AllowedCaseTypes.ToList(),
                 //Jurisdiction = c.Jurisdiction,
                 IsActive = c.IsActive
             }).ToList();
@@ -146,7 +143,6 @@ namespace Application.Service
                 State = c.State,
                 ContactEmail = c.ContactEmail,
                 ContactPhone = c.ContactPhone,
-                AllowedCaseTypes = c.AllowedCaseTypes.ToList(),
                 //Jurisdiction = c.Jurisdiction,
                 IsActive = c.IsActive
             }).ToList();
@@ -179,7 +175,6 @@ namespace Application.Service
                 State = court.State,
                 ContactEmail = court.ContactEmail,
                 ContactPhone = court.ContactPhone,
-                AllowedCaseTypes = court.AllowedCaseTypes.ToList(),
                 //Jurisdiction = court.Jurisdiction,
                 IsActive = court.IsActive
             };

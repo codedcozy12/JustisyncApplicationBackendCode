@@ -4,6 +4,7 @@
     {
         Initiated,
         Filed,
+        Scheduled,
         In_court,
         Adjourned,
         Closed,

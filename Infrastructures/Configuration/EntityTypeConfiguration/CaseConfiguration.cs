@@ -29,11 +29,6 @@ namespace JustiSync.Infrastructure.Configurations
                 .IsRequired()
                 .HasMaxLength(100);
 
-            builder.Property(c => c.AllowedCaseType)
-                .HasConversion<string>()
-                .IsRequired()
-                .HasMaxLength(100);
-
             builder.Property(c => c.Status)
                 .HasConversion<string>()
                 .IsRequired()
@@ -64,9 +59,9 @@ namespace JustiSync.Infrastructure.Configurations
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(c => c.Judge)
-                .WithMany()
+                .WithMany(j => j.Cases)
                 .HasForeignKey(c => c.JudgeId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(c => c.Registrar)
                 .WithMany()

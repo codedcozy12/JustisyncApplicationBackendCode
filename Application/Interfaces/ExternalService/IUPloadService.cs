@@ -6,5 +6,6 @@ namespace Application.Interfaces.ExternalService
     {
        string? UploadProfile(IFormFile file);
        string UploadFile(IFormFile file);
+       string UploadDocument (IFormFile file);
     }
 }
