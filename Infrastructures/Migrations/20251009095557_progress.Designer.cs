@@ -3,6 +3,7 @@ using System;
 using Infrastructures.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
@@ -11,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Infrastructures.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20250903222241_first")]
-    partial class first
+    [Migration("20251009095557_progress")]
+    partial class progress
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -22,33 +23,51 @@ namespace Infrastructures.Migrations
                 .HasAnnotation("ProductVersion", "8.0.13")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
-            modelBuilder.Entity("Domain.Entities.AIChatMessage", b =>
+            MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
+
+            modelBuilder.Entity("CourtSessionUser", b =>
+                {
+                    b.Property<Guid>("CourtSessionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("CourtSessionId", "UserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CourtSessionUsers", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.AiChatMessage", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid>("AIConversationSessionId")
+                        .HasColumnType("char(36)");
+
                     b.Property<string>("Message")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasColumnType("MEDIUMTEXT");
 
-                    b.Property<int>("Sender")
-                        .HasColumnType("int");
+                    b.Property<string>("Sender")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<DateTime>("SentAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<Guid>("SessionId")
-                        .HasColumnType("char(36)");
-
                     b.HasKey("Id");
 
-                    b.HasIndex("SessionId");
+                    b.HasIndex("AIConversationSessionId");
 
-                    b.ToTable("AIChatMessages");
+                    b.ToTable("AIChatMessages", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.AIConversationSession", b =>
+            modelBuilder.Entity("Domain.Entities.AiConversationSession", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -64,7 +83,50 @@ namespace Infrastructures.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AIConversationSessions");
+                    b.ToTable("AIConversationSessions", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.AuditLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Details")
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<Guid?>("EntityId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("EntityName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.Property<DateTime>("Timestamp")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EntityId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Case", b =>
@@ -74,13 +136,18 @@ namespace Infrastructures.Migrations
                         .HasColumnType("char(36)");
 
                     b.Property<string>("AiAnalysisSummary")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(4000)
+                        .HasColumnType("varchar(4000)");
 
                     b.Property<string>("CaseNumber")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<Guid>("ClientId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("CourtId")
                         .HasColumnType("char(36)");
 
                     b.Property<string>("CreatedBy")
@@ -94,7 +161,8 @@ namespace Infrastructures.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
@@ -108,25 +176,38 @@ namespace Infrastructures.Migrations
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("longtext");
 
-                    b.Property<int>("OffenseType")
-                        .HasColumnType("int");
+                    b.Property<string>("OffenseLocation")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
+
+                    b.Property<string>("OffenseType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("PrecedentComparisonResult")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(4000)
+                        .HasColumnType("varchar(4000)");
 
                     b.Property<Guid>("RegistrarId")
                         .HasColumnType("char(36)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("ClientId");
+
+                    b.HasIndex("CourtId");
 
                     b.HasIndex("JudgeId");
 
@@ -134,10 +215,10 @@ namespace Infrastructures.Migrations
 
                     b.HasIndex("RegistrarId");
 
-                    b.ToTable("Cases");
+                    b.ToTable("Cases", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.CaseProceedingRecord", b =>
+            modelBuilder.Entity("Domain.Entities.CaseParty", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -146,14 +227,43 @@ namespace Infrastructures.Migrations
                     b.Property<Guid>("CaseId")
                         .HasColumnType("char(36)");
 
-                    b.Property<DateTime?>("CompletedDate")
-                        .HasColumnType("datetime(6)");
+                    b.Property<string>("ContactEmail")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
 
-                    b.Property<int>("CourtSession")
+                    b.Property<string>("ContactPhone")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("FullName")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<int>("Role")
                         .HasColumnType("int");
+
+                    b.Property<Guid?>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CaseId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("CaseParties", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.CaseProceedingRecord", b =>
+                {
+                    b.Property<Guid>("CaseId")
+                        .HasColumnType("char(36)");
 
                     b.Property<Guid>("CourtSessionId")
                         .HasColumnType("char(36)");
+
+                    b.Property<DateTime?>("CompletedDate")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("longtext");
@@ -166,49 +276,61 @@ namespace Infrastructures.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(2000)
+                        .HasColumnType("varchar(2000)");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("char(36)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<Guid>("JudgeId")
+                        .HasColumnType("char(36)");
+
                     b.Property<string>("ModifiedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("Notes")
                         .HasColumnType("longtext");
 
                     b.Property<string>("Outcome")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
 
                     b.Property<Guid>("RecordedByUserId")
                         .HasColumnType("char(36)");
 
                     b.Property<string>("RecordingLink")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<DateTime>("ScheduledDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("SessionLink")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
 
                     b.Property<int>("Type")
                         .HasColumnType("int");
 
-                    b.HasKey("Id");
-
-                    b.HasIndex("CaseId");
+                    b.HasKey("CaseId", "CourtSessionId");
 
                     b.HasIndex("CourtSessionId");
 
-                    b.ToTable("CaseProceedingRecords");
+                    b.ToTable("CaseProceedingRecords", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Certificate", b =>
@@ -219,7 +341,8 @@ namespace Infrastructures.Migrations
 
                     b.Property<string>("CertificateType")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("longtext");
@@ -261,7 +384,7 @@ namespace Infrastructures.Migrations
 
                     b.HasIndex("VerifiedById");
 
-                    b.ToTable("Certificates");
+                    b.ToTable("Certificates", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Chat", b =>
@@ -270,25 +393,23 @@ namespace Infrastructures.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<Guid>("ClientId")
-                        .HasColumnType("char(36)");
-
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("InitiatorId")
+                        .HasColumnType("char(36)");
 
                     b.Property<DateTime>("LastMessageAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<Guid>("LawyerId")
+                    b.Property<Guid>("RecipientId")
                         .HasColumnType("char(36)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ClientId");
+                    b.HasIndex("RecipientId");
 
-                    b.HasIndex("LawyerId");
-
-                    b.ToTable("Chats");
+                    b.ToTable("Chats", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.ChatMessage", b =>
@@ -301,11 +422,17 @@ namespace Infrastructures.Migrations
                         .HasColumnType("char(36)");
 
                     b.Property<bool>("IsRead")
-                        .HasColumnType("tinyint(1)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Message")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(3000)
+                        .HasColumnType("varchar(3000)");
+
+                    b.Property<int>("MessageType")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("ReceiverId")
                         .HasColumnType("char(36)");
@@ -324,7 +451,7 @@ namespace Infrastructures.Migrations
 
                     b.HasIndex("SenderId");
 
-                    b.ToTable("ChatMessages");
+                    b.ToTable("ChatMessages", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Court", b =>
@@ -335,19 +462,23 @@ namespace Infrastructures.Migrations
 
                     b.Property<string>("Address")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(300)
+                        .HasColumnType("varchar(300)");
 
                     b.Property<string>("City")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)");
 
                     b.Property<string>("ContactEmail")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("ContactPhone")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("longtext");
@@ -359,32 +490,39 @@ namespace Infrastructures.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(true);
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<int>("Jurisdiction")
-                        .HasColumnType("int");
+                    b.Property<string>("Location")
+                        .IsRequired()
+                        .HasMaxLength(250)
+                        .HasColumnType("varchar(250)");
 
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("longtext");
 
                     b.Property<string>("Name")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
 
                     b.Property<string>("State")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)");
 
                     b.Property<string>("Type")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Courts");
+                    b.ToTable("Courts", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.CourtSession", b =>
@@ -420,12 +558,10 @@ namespace Infrastructures.Migrations
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Notes")
-                        .HasColumnType("longtext");
-
                     b.Property<string>("Outcome")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<DateTime>("ScheduledDate")
                         .HasColumnType("datetime(6)");
@@ -433,8 +569,10 @@ namespace Infrastructures.Migrations
                     b.Property<DateTime?>("StartTime")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)");
 
                     b.HasKey("Id");
 
@@ -442,9 +580,11 @@ namespace Infrastructures.Migrations
 
                     b.HasIndex("CourtId");
 
-                    b.HasIndex("JudgeId");
+                    b.HasIndex("JudgeId", "ScheduledDate")
+                        .IsUnique()
+                        .HasDatabaseName("IX_Judge_ScheduledDate_Unique");
 
-                    b.ToTable("CourtSessions");
+                    b.ToTable("CourtSessions", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Document", b =>
@@ -467,15 +607,18 @@ namespace Infrastructures.Migrations
 
                     b.Property<string>("FileName")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)");
 
                     b.Property<string>("FileType")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<string>("FileUrl")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
@@ -487,7 +630,7 @@ namespace Infrastructures.Migrations
 
                     b.HasIndex("CaseId");
 
-                    b.ToTable("Documents");
+                    b.ToTable("Documents", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Judge", b =>
@@ -526,7 +669,22 @@ namespace Infrastructures.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Judges");
+                    b.ToTable("Judges", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Entities.JudgeCourt", b =>
+                {
+                    b.Property<Guid>("JudgeId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("CourtId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("JudgeId", "CourtId");
+
+                    b.HasIndex("CourtId");
+
+                    b.ToTable("JudgeCourts", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Lawyer", b =>
@@ -537,7 +695,8 @@ namespace Infrastructures.Migrations
 
                     b.Property<string>("BarMembershipNumber")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("longtext");
@@ -552,7 +711,8 @@ namespace Infrastructures.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("LawSchoolName")
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<int>("LawyerSpecialization")
                         .HasColumnType("int");
@@ -562,19 +722,22 @@ namespace Infrastructures.Migrations
 
                     b.Property<string>("UniversityName")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("char(36)");
 
-                    b.Property<int>("VerificationStatus")
-                        .HasColumnType("int");
+                    b.Property<string>("VerificationStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("varchar(20)");
 
                     b.HasKey("Id");
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Lawyers");
+                    b.ToTable("Lawyers", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Notification", b =>
@@ -593,24 +756,27 @@ namespace Infrastructures.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
 
                     b.Property<bool>("IsRead")
-                        .HasColumnType("tinyint(1)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
 
                     b.Property<string>("Message")
                         .IsRequired()
-                        .HasColumnType("longtext");
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
 
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("longtext");
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<Guid>("ToId")
-                        .HasColumnType("char(36)");
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
 
                     b.Property<Guid>("UserId")
                         .HasColumnType("char(36)");
@@ -619,7 +785,7 @@ namespace Infrastructures.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.Registrar", b =>
@@ -655,7 +821,7 @@ namespace Infrastructures.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Registrars");
+                    b.ToTable("Registrars", (string)null);
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>
@@ -664,11 +830,9 @@ namespace Infrastructures.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<int>("Accountstatus")
-                        .HasColumnType("int");
-
-                    b.Property<Guid?>("CourtSessionId")
-                        .HasColumnType("char(36)");
+                    b.Property<string>("Accountstatus")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("longtext");
@@ -688,6 +852,9 @@ namespace Infrastructures.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsEmailConfirmed")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("LastName")
@@ -712,8 +879,9 @@ namespace Infrastructures.Migrations
                     b.Property<string>("ProfilePictureUrl")
                         .HasColumnType("longtext");
 
-                    b.Property<int>("Role")
-                        .HasColumnType("int");
+                    b.Property<string>("Role")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("Username")
                         .IsRequired()
@@ -721,23 +889,69 @@ namespace Infrastructures.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CourtSessionId");
-
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.AIChatMessage", b =>
+            modelBuilder.Entity("Domain.Entities.UserCourtSession", b =>
                 {
-                    b.HasOne("Domain.Entities.AIConversationSession", "Session")
-                        .WithMany("Messages")
-                        .HasForeignKey("SessionId")
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid>("CourtSessionId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("DateCreated")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("DateModified")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("Id")
+                        .HasColumnType("char(36)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("longtext");
+
+                    b.HasKey("UserId", "CourtSessionId");
+
+                    b.HasIndex("CourtSessionId");
+
+                    b.ToTable("UserCourtSessions", (string)null);
+                });
+
+            modelBuilder.Entity("CourtSessionUser", b =>
+                {
+                    b.HasOne("Domain.Entities.CourtSession", null)
+                        .WithMany()
+                        .HasForeignKey("CourtSessionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("Session");
+                    b.HasOne("Domain.Entities.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 
-            modelBuilder.Entity("Domain.Entities.AIConversationSession", b =>
+            modelBuilder.Entity("Domain.Entities.AiChatMessage", b =>
+                {
+                    b.HasOne("Domain.Entities.AiConversationSession", "AIConversationSession")
+                        .WithMany("Messages")
+                        .HasForeignKey("AIConversationSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AIConversationSession");
+                });
+
+            modelBuilder.Entity("Domain.Entities.AiConversationSession", b =>
                 {
                     b.HasOne("Domain.Entities.User", "User")
                         .WithMany("AIConversationSessions")
@@ -753,34 +967,60 @@ namespace Infrastructures.Migrations
                     b.HasOne("Domain.Entities.User", "Client")
                         .WithMany()
                         .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Court", "Court")
+                        .WithMany("CourtCases")
+                        .HasForeignKey("CourtId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.Judge", "Judge")
                         .WithMany("Cases")
                         .HasForeignKey("JudgeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.Lawyer", "Lawyer")
                         .WithMany()
                         .HasForeignKey("LawyerId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.Registrar", "Registrar")
                         .WithMany()
                         .HasForeignKey("RegistrarId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Client");
+
+                    b.Navigation("Court");
 
                     b.Navigation("Judge");
 
                     b.Navigation("Lawyer");
 
                     b.Navigation("Registrar");
+                });
+
+            modelBuilder.Entity("Domain.Entities.CaseParty", b =>
+                {
+                    b.HasOne("Domain.Entities.Case", "Case")
+                        .WithMany("CaseParties")
+                        .HasForeignKey("CaseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("Case");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Entities.CaseProceedingRecord", b =>
@@ -791,13 +1031,15 @@ namespace Infrastructures.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.CourtSession", null)
+                    b.HasOne("Domain.Entities.CourtSession", "CourtSession")
                         .WithMany("Proceedings")
                         .HasForeignKey("CourtSessionId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Case");
+
+                    b.Navigation("CourtSession");
                 });
 
             modelBuilder.Entity("Domain.Entities.Certificate", b =>
@@ -819,21 +1061,13 @@ namespace Infrastructures.Migrations
 
             modelBuilder.Entity("Domain.Entities.Chat", b =>
                 {
-                    b.HasOne("Domain.Entities.User", "Client")
-                        .WithMany()
-                        .HasForeignKey("ClientId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany("UserChats")
+                        .HasForeignKey("RecipientId")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.HasOne("Domain.Entities.User", "Lawyer")
-                        .WithMany()
-                        .HasForeignKey("LawyerId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Client");
-
-                    b.Navigation("Lawyer");
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Domain.Entities.ChatMessage", b =>
@@ -845,15 +1079,15 @@ namespace Infrastructures.Migrations
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.User", "Receiver")
-                        .WithMany()
+                        .WithMany("ReceivedMessages")
                         .HasForeignKey("ReceiverId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.User", "Sender")
-                        .WithMany()
+                        .WithMany("SentMessages")
                         .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Chat");
@@ -880,7 +1114,7 @@ namespace Infrastructures.Migrations
                     b.HasOne("Domain.Entities.User", "Judge")
                         .WithMany()
                         .HasForeignKey("JudgeId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Case");
@@ -906,7 +1140,7 @@ namespace Infrastructures.Migrations
                     b.HasOne("Domain.Entities.Court", "Court")
                         .WithMany("Judges")
                         .HasForeignKey("CourtId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.User", "User")
@@ -918,6 +1152,25 @@ namespace Infrastructures.Migrations
                     b.Navigation("Court");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Domain.Entities.JudgeCourt", b =>
+                {
+                    b.HasOne("Domain.Entities.Court", "Court")
+                        .WithMany("JudgeCourts")
+                        .HasForeignKey("CourtId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Judge", "Judge")
+                        .WithMany("JudgeCourts")
+                        .HasForeignKey("JudgeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Court");
+
+                    b.Navigation("Judge");
                 });
 
             modelBuilder.Entity("Domain.Entities.Lawyer", b =>
@@ -953,7 +1206,7 @@ namespace Infrastructures.Migrations
                     b.HasOne("Domain.Entities.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Court");
@@ -961,20 +1214,34 @@ namespace Infrastructures.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.User", b =>
+            modelBuilder.Entity("Domain.Entities.UserCourtSession", b =>
                 {
-                    b.HasOne("Domain.Entities.CourtSession", null)
-                        .WithMany("Users")
-                        .HasForeignKey("CourtSessionId");
+                    b.HasOne("Domain.Entities.CourtSession", "CourtSession")
+                        .WithMany("UserCourtSessions")
+                        .HasForeignKey("CourtSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.User", "User")
+                        .WithMany("UserCourtSessions")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CourtSession");
+
+                    b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.AIConversationSession", b =>
+            modelBuilder.Entity("Domain.Entities.AiConversationSession", b =>
                 {
                     b.Navigation("Messages");
                 });
 
             modelBuilder.Entity("Domain.Entities.Case", b =>
                 {
+                    b.Navigation("CaseParties");
+
                     b.Navigation("CourtSessions");
 
                     b.Navigation("Documents");
@@ -989,7 +1256,11 @@ namespace Infrastructures.Migrations
 
             modelBuilder.Entity("Domain.Entities.Court", b =>
                 {
+                    b.Navigation("CourtCases");
+
                     b.Navigation("CourtSessions");
+
+                    b.Navigation("JudgeCourts");
 
                     b.Navigation("Judges");
 
@@ -1000,12 +1271,14 @@ namespace Infrastructures.Migrations
                 {
                     b.Navigation("Proceedings");
 
-                    b.Navigation("Users");
+                    b.Navigation("UserCourtSessions");
                 });
 
             modelBuilder.Entity("Domain.Entities.Judge", b =>
                 {
                     b.Navigation("Cases");
+
+                    b.Navigation("JudgeCourts");
                 });
 
             modelBuilder.Entity("Domain.Entities.Lawyer", b =>
@@ -1018,6 +1291,14 @@ namespace Infrastructures.Migrations
                     b.Navigation("AIConversationSessions");
 
                     b.Navigation("Notifications");
+
+                    b.Navigation("ReceivedMessages");
+
+                    b.Navigation("SentMessages");
+
+                    b.Navigation("UserChats");
+
+                    b.Navigation("UserCourtSessions");
                 });
 #pragma warning restore 612, 618
         }

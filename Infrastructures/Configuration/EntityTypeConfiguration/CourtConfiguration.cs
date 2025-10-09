@@ -1,6 +1,7 @@
 ﻿using Domain.Entities;
 using Domain.Enums;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Text.Json;
 
@@ -22,18 +23,6 @@ public class CourtConfiguration : IEntityTypeConfiguration<Court>
         builder.Property(c => c.ContactPhone).IsRequired().HasMaxLength(50);
         builder.Property(c => c.Location).IsRequired().HasMaxLength(250);
         builder.Property(c => c.IsActive).HasDefaultValue(true);
-
-        builder.Property(c => c.AllowedCaseTypes)
-            .HasConversion(
-                v => JsonSerializer.Serialize(v, new JsonSerializerOptions
-                {
-                    Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
-                }),
-                v => JsonSerializer.Deserialize<List<AllowedCaseType>>(v, new JsonSerializerOptions
-                {
-                    Converters = { new System.Text.Json.Serialization.JsonStringEnumConverter() }
-                }) ?? new List<AllowedCaseType>()
-            );
 
         builder.HasMany(c => c.Registrars)
             .WithOne(r => r.Court)

@@ -20,32 +20,31 @@ namespace Application.Service
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<ResponseDto<AiConversationSessionCreateRequestDto>> CreateSessionAsync(AiConversationSessionCreateRequestDto request)
+        public async Task<ResponseDto<Guid>> CreateSessionAsync(AiConversationSessionCreateRequestDto request)
         {
             if (request == null || request.UserId == Guid.Empty)
             {
                 _logger.LogError("AI Conversation Session creation request is null or invalid");
-                return new ResponseDto<AiConversationSessionCreateRequestDto>
+                return new ResponseDto<Guid>
                 {
                     IsSuccess = false,
                     Message = "Invalid AI Conversation Session creation request",
-                    Data = null
+                    Data = Guid.Empty
                 };
             }
             _logger.LogInformation("Creating new AI Conversation Session for UserId: {UserId}", request.UserId);
             var session = new AiConversationSession
             {
-                Id = Guid.NewGuid(),
                 UserId = request.UserId
             };
             await _aiConversationSessionRepository.AddAsync(session);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("AI Conversation Session created successfully with Id: {SessionId}", session.Id);
-            return new ResponseDto<AiConversationSessionCreateRequestDto>
+            return new ResponseDto<Guid>
             {
                 IsSuccess = true,
                 Message = "AI Conversation Session created successfully",
-                Data = request
+                Data = session.Id
             };
         }
         public async Task DeleteSessionAsync(Guid sessionId)

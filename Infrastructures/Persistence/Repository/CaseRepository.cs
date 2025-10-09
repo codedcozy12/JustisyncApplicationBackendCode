@@ -30,6 +30,7 @@ namespace Infrastructures.Persistence.Repository
             return await _context.Cases
                 .Include(c => c.Lawyer)
                 .Include(c => c.Client)
+                .Include(c => c.OffenseLocation)
                 .Include(c => c.Court)
                 .ToListAsync();
         }
@@ -38,6 +39,8 @@ namespace Infrastructures.Persistence.Repository
             return await _context.Cases
             .Include(c => c.Lawyer)
             .Include(c => c.Client)
+            .Include(c => c.OffenseLocation)
+            .Include(a => a.CaseParties)
             .Include(c => c.Court)
                 .ThenInclude(court => court.JudgeCourts)
                     .ThenInclude(jc => jc.Judge)
@@ -48,6 +51,7 @@ namespace Infrastructures.Persistence.Repository
             return await _context.Cases
                 .Where(c => c.ClientId == clientId)
                 .Include(c => c.Lawyer)
+                .Include(c => c.OffenseLocation)
                 .Include(c => c.Court)
                 .ToListAsync();
         }

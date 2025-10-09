@@ -5,7 +5,7 @@
 namespace Infrastructures.Migrations
 {
     /// <inheritdoc />
-    public partial class config : Migration
+    public partial class fixCert : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)

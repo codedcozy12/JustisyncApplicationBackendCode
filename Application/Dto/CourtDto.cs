@@ -13,8 +13,7 @@ namespace Application.Dto
             public string State { get; set; } = default!;
             public string ContactEmail { get; set; } = default!;
             public string ContactPhone { get; set; } = default!;
-            public ICollection<AllowedCaseType> AllowedCaseTypes { get; set; } = [];
-        //public CourtJurisdiction Jurisdiction { get; set; }
+            //public CourtJurisdiction Jurisdiction { get; set; }
             public List<RegistrarDto> Registrars { get; set; } = new();
             public List<JudgeDto> Judges { get; set; } = new();
             //public List<CourtSessionDto> CourtSessions { get; set; } = new();
@@ -29,7 +28,6 @@ namespace Application.Dto
             public required string State { get; set; } = default!;
             public required string ContactEmail { get; set; } = default!;
             public required string ContactPhone { get; set; } = default!;
-            public ICollection<AllowedCaseType> AllowedCaseTypes { get; set; } = [];
         //public required CourtJurisdiction Jurisdiction { get; set; }
     }
     public class CourtUpdateRequestDto

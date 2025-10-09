@@ -22,8 +22,9 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
                     .IsRequired();
 
             builder.Property(m => m.Message)
-                   .IsRequired()
-                   .HasMaxLength(3000);
+                    .IsRequired()
+                    .HasColumnType("MEDIUMTEXT");
+
 
             builder.Property(m => m.SentAt)
                    .IsRequired();
