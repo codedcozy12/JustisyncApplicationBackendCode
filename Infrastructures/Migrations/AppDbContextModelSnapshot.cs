@@ -48,7 +48,8 @@ namespace Infrastructures.Migrations
 
                     b.Property<string>("Message")
                         .IsRequired()
-                        .HasColumnType("MEDIUMTEXT");
+                        .HasMaxLength(3000)
+                        .HasColumnType("varchar(3000)");
 
                     b.Property<string>("Sender")
                         .IsRequired()
@@ -136,6 +137,11 @@ namespace Infrastructures.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("varchar(4000)");
 
+                    b.Property<string>("AllowedCaseType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
                     b.Property<string>("CaseNumber")
                         .IsRequired()
                         .HasMaxLength(50)
@@ -165,6 +171,9 @@ namespace Infrastructures.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<Guid>("JudgeId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<Guid?>("JudgeId1")
                         .HasColumnType("char(36)");
 
                     b.Property<Guid>("LawyerId")
@@ -207,6 +216,8 @@ namespace Infrastructures.Migrations
                     b.HasIndex("CourtId");
 
                     b.HasIndex("JudgeId");
+
+                    b.HasIndex("JudgeId1");
 
                     b.HasIndex("LawyerId");
 
@@ -282,13 +293,7 @@ namespace Infrastructures.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<Guid>("JudgeId")
-                        .HasColumnType("char(36)");
-
                     b.Property<string>("ModifiedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("Notes")
                         .HasColumnType("longtext");
 
                     b.Property<string>("Outcome")
@@ -363,6 +368,9 @@ namespace Infrastructures.Migrations
                     b.Property<Guid>("LawyerId")
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid>("LawyerId1")
+                        .HasColumnType("char(36)");
+
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("longtext");
 
@@ -379,6 +387,8 @@ namespace Infrastructures.Migrations
 
                     b.HasIndex("LawyerId");
 
+                    b.HasIndex("LawyerId1");
+
                     b.HasIndex("VerifiedById");
 
                     b.ToTable("Certificates", (string)null);
@@ -393,18 +403,15 @@ namespace Infrastructures.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<Guid>("InitiatorId")
-                        .HasColumnType("char(36)");
-
                     b.Property<DateTime>("LastMessageAt")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<Guid>("RecipientId")
+                    b.Property<Guid>("UserId")
                         .HasColumnType("char(36)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RecipientId");
+                    b.HasIndex("UserId");
 
                     b.ToTable("Chats", (string)null);
                 });
@@ -427,9 +434,6 @@ namespace Infrastructures.Migrations
                         .IsRequired()
                         .HasMaxLength(3000)
                         .HasColumnType("varchar(3000)");
-
-                    b.Property<int>("MessageType")
-                        .HasColumnType("int");
 
                     b.Property<Guid>("ReceiverId")
                         .HasColumnType("char(36)");
@@ -461,6 +465,10 @@ namespace Infrastructures.Migrations
                         .IsRequired()
                         .HasMaxLength(300)
                         .HasColumnType("varchar(300)");
+
+                    b.Property<string>("AllowedCaseTypes")
+                        .IsRequired()
+                        .HasColumnType("longtext");
 
                     b.Property<string>("City")
                         .IsRequired()
@@ -554,6 +562,10 @@ namespace Infrastructures.Migrations
 
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("longtext");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
 
                     b.Property<string>("Outcome")
                         .IsRequired()
@@ -974,10 +986,14 @@ namespace Infrastructures.Migrations
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.Judge", "Judge")
-                        .WithMany("Cases")
+                        .WithMany()
                         .HasForeignKey("JudgeId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
+
+                    b.HasOne("Domain.Entities.Judge", null)
+                        .WithMany("Cases")
+                        .HasForeignKey("JudgeId1");
 
                     b.HasOne("Domain.Entities.Lawyer", "Lawyer")
                         .WithMany()
@@ -1041,9 +1057,15 @@ namespace Infrastructures.Migrations
 
             modelBuilder.Entity("Domain.Entities.Certificate", b =>
                 {
-                    b.HasOne("Domain.Entities.Lawyer", "Lawyer")
+                    b.HasOne("Domain.Entities.Lawyer", null)
                         .WithMany("Certificates")
                         .HasForeignKey("LawyerId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Domain.Entities.Lawyer", "Lawyer")
+                        .WithMany()
+                        .HasForeignKey("LawyerId1")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1060,7 +1082,7 @@ namespace Infrastructures.Migrations
                 {
                     b.HasOne("Domain.Entities.User", "User")
                         .WithMany("UserChats")
-                        .HasForeignKey("RecipientId")
+                        .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 

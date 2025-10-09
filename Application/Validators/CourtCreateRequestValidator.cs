@@ -34,6 +34,17 @@ namespace Application.Validators
             RuleFor(x => x.ContactPhone)
                 .NotEmpty().WithMessage("Contact phone is required.")
                 .Matches(@"^\+?[0-9]{7,15}$").WithMessage("Invalid phone number format. Use digits only and optional + prefix.");
+            RuleFor(c => c.AllowedCaseTypes)
+            .NotEmpty()
+            .WithMessage("At least one case type must be selected for this court.");
+
+            RuleForEach(c => c.AllowedCaseTypes)
+                .IsInEnum()
+                .WithMessage("One or more case types are invalid.");
+
+            RuleFor(c => c.AllowedCaseTypes)
+                .Must(list => list.Distinct().Count() == list.Count)
+                .WithMessage("Duplicate case types are not allowed.");
 
             //RuleFor(x => x.Jurisdiction)
             //    .IsInEnum().WithMessage("Invalid jurisdiction value.");

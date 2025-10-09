@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
@@ -39,12 +40,6 @@ builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IAiConversationSessionRepository, AiConversationSessionRepository>();
 builder.Services.AddScoped<IAiChatMessageRepository, AiChatMessageRepository>();
-builder.Services.AddScoped<IChatRepository, ChatRepository>();
-builder.Services.AddScoped<IChatMessageRepository, ChatMessageRepository>();
-builder.Services.AddScoped<ICaseRepository, CaseRepository>();
-builder.Services.AddScoped<ICasePartyRepository, CasePartyRepository>();
-builder.Services.AddScoped<ICaseProceedingRecordRepository, CaseProceedingRecordRepository>();
-builder.Services.AddScoped<IDocumentRepository,  DocumentRepository>();
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<ICacheService, CacheService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -61,14 +56,6 @@ builder.Services.AddScoped<ICourtService, CourtService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IAuditLogService, AuditLogService>();
 builder.Services.AddScoped<IAiChatMessageService, AiChatMessageService>();
-builder.Services.AddScoped<IAiConversationSessionService, AiConversationSessionService>();
-builder.Services.AddScoped<IChatService, ChatService>();
-builder.Services.AddScoped<IChatMessageService, ChatMessageService>();
-builder.Services.AddScoped<ICaseService, CaseService>();
-builder.Services.AddScoped<ICasePartyService, CasePartyService>();
-builder.Services.AddScoped<ICaseProceedingRecordService, CaseProceedingRecordService>();
-builder.Services.AddScoped<IDocumentService, DocumentService>();
-
 builder.Services.AddScoped<IAIChatProvider, AiChatProvider>();    
 
 builder.Services.AddAuthentication(config =>
@@ -91,31 +78,12 @@ builder.Services.AddAuthentication(config =>
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration.GetSection("JwtSettings")["Key"]!)),
 
     };
-
-    config.Events = new JwtBearerEvents
-    {
-        OnMessageReceived = async context =>
-        {
-            var accessToken = context.Request.Query["access_token"];
-            var path = context.HttpContext.Request.Path;
-
-            if (!string.IsNullOrEmpty(accessToken) &&
-                path.StartsWithSegments("/chathub"))
-            {
-                context.Token = accessToken;
-            }
-             
-        }
-    };
-
 });
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));
 builder.Services.Configure<OpenAiSettings>(builder.Configuration.GetSection("OpenAI"));
 
 builder.Services.AddMemoryCache();
-
-builder.Services.AddSignalR();
 
 builder.Services.AddControllers();
 builder.Services.AddHttpContextAccessor();
@@ -202,7 +170,5 @@ app.UseAuthorization();
 app.UseStaticFiles();
 
 app.MapControllers();
-
-app.MapHub<ChatHub>("/chathub");
 
 app.Run();

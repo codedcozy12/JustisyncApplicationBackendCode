@@ -14,7 +14,7 @@ namespace Application.Service
         }
         public Guid? GetCurrentUserId()
         {
-            var id = _http.HttpContext?.User?.FindFirst("UserId")?.Value;
+            var id = _http.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrWhiteSpace(id) || !Guid.TryParse(id, out var parsed) || parsed == Guid.Empty)
             {
                 return null;

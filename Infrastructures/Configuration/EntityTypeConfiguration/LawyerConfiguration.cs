@@ -22,12 +22,11 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
                 .IsRequired()
                 .HasConversion<string>()
                 .HasMaxLength(20);
-
             builder.HasMany(l => l.Certificates)
-                .WithOne(a => a.Lawyer)
+                .WithOne()
                 .HasForeignKey(l => l.LawyerId)
+                //.HasForeignKey("LawyerId")
                 .OnDelete(DeleteBehavior.Cascade);
-
             //builder.HasMany(l => l.)
             //    .WithOne()
             //    .HasForeignKey("LawyerId")

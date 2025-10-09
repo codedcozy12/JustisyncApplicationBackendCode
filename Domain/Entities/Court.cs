@@ -13,6 +13,7 @@ namespace Domain.Entities
             public required string ContactEmail { get; set; }
             public required string ContactPhone { get; set; }
             public string Location { get; set; } = default!;
+            public ICollection<AllowedCaseType> AllowedCaseTypes { get; set; } = [];
             public ICollection<Registrar> Registrars { get; set; } = [];
             public ICollection<JudgeCourt> JudgeCourts { get; set; } = [];
             public ICollection<Judge> Judges { get; set; } = [];

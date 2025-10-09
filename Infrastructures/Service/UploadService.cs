@@ -67,36 +67,5 @@ namespace Infrastructures.Service
             }
             return fileName;
         }
-        public string UploadDocument(IFormFile file)
-        {
-            var rootFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/Documents");
-            if (!Directory.Exists(rootFolder))
-            {
-                Directory.CreateDirectory(rootFolder);
-            }
-            var contentType = file.ContentType;
-
-            string subFolder = contentType switch
-            {
-                var type when type.StartsWith("image/") => "Images",
-                var type when type.StartsWith("video/") => "Videos",
-                var type when type.StartsWith("application/") => "Documents",
-                _ => "Others"
-            };
-
-            var folder = Path.Combine(rootFolder, subFolder);
-            if (!Directory.Exists(folder))
-            {
-                Directory.CreateDirectory(folder);
-            }
-
-            var fileName = $"{Guid.NewGuid()}_{Path.GetFileName(file.FileName)}";
-            var filePath = Path.Combine(folder, fileName);
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                file.CopyTo(stream);
-            }
-            return fileName;
-        }
     }
 }

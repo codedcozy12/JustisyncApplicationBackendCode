@@ -16,11 +16,14 @@ namespace Infrastructures.Service
 
         public async Task<string> GetChatResponseAsync(string message)
         {
+            // Use the API key from settings
 
             var client = new OpenAIResponseClient(model: "gpt-5", apiKey: _options.ApiKey);
 
+            // Call AI asynchronously
             OpenAIResponse response = await client.CreateResponseAsync(message);
 
+            // Return only the text
             return response.GetOutputText();
         }
     }

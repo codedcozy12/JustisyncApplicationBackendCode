@@ -154,7 +154,7 @@ namespace Application.Service
         {
             var auditLog = new AuditLog
             {
-                Id = Guid.NewGuid(),
+                Id = userId,
                 UserId = userId,
                 Action = action,
                 EntityName = entityName,

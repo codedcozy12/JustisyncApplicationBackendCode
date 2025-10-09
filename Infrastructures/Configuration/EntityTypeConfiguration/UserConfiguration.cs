@@ -30,7 +30,7 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
 
             builder.HasMany(u => u.UserChats)
                    .WithOne(c => c.User)
-                   .HasForeignKey(c => c.RecipientId)
+                   .HasForeignKey(c => c.UserId)
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasMany(u => u.SentMessages)

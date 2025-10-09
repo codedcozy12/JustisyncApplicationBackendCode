@@ -26,6 +26,9 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
                    .HasConversion<string>()
                    .HasMaxLength(30);
 
+            builder.Property(cs => cs.Notes)
+                   .HasMaxLength(1000);
+
             builder.Property(cs => cs.Outcome)
                    .IsRequired()
                    .HasMaxLength(500);
