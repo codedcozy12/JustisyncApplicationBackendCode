@@ -11,6 +11,7 @@ namespace Application.Dto
             public string Address { get; set; } = default!;
             public string City { get; set; } = default!;
             public string State { get; set; } = default!;
+            public string Location { get; set; } = default!;
             public string ContactEmail { get; set; } = default!;
             public string ContactPhone { get; set; } = default!;
             public List<JurisdictionDto> Jurisdictions { get; set; } = new();
@@ -26,9 +27,10 @@ namespace Application.Dto
             public required string Address { get; set; } = default!;
             public required string City { get; set; } = default!;
             public required string State { get; set; } = default!;
+            public string Location { get; set; } = default!;
             public required string ContactEmail { get; set; } = default!;
             public required string ContactPhone { get; set; } = default!;
-           public List<Guid> JurisdictionIds { get; set; } = new();
+            public List<Guid> JurisdictionIds { get; set; } = new();
     }
     public class CourtUpdateRequestDto
     {

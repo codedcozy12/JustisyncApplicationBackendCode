@@ -65,6 +65,7 @@ namespace Application.Service
                 Name = request.Name,
                 Type = request.Type,
                 Address = request.Address,
+                Location = request.Location,
                 City = request.City,
                 State = request.State,
                 ContactEmail = request.ContactEmail,

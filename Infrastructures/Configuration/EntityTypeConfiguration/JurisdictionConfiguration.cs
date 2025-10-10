@@ -18,7 +18,6 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
 
             builder.Property(j => j.MonetaryLimit)
                 .HasColumnType("decimal(18,2)");
- 
         }
     }
 }

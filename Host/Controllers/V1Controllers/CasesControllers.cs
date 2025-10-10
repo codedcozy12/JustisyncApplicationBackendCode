@@ -77,6 +77,25 @@ namespace Host.Controllers.V1Controllers
             var result = await _caseService.GetPendingCasesAsync();
             return Ok(result);
         }
+
+        [HttpPut("verify")]
+        [SwaggerOperation(Summary = "Verify case jurisdictions", Description = "Verifies the jurisdiction attached to a specific case.")]
+        public async Task<IActionResult> VerifyCaseJurisdiction([FromBody] CaseUpdateVerificationRequestDto request)
+        {
+            if (request == null || request.CaseId == Guid.Empty)
+            {
+                return BadRequest("Invalid request data.");
+            }
+
+            var result = await _caseService.VerifyCaseJurisdictionAsync(request);
+
+            if (!result.IsSuccess)
+                return BadRequest(result);
+
+            return Ok(result);
+        }
+
+
         [HttpGet("closed")]
         [SwaggerOperation(Summary = "Get closed cases", Description = "Retrieves all cases that have been closed.")]
         public async Task<IActionResult> GetClosedCases()

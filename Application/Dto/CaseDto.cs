@@ -46,4 +46,10 @@ namespace Application.Dto
         public CaseStatus? Status { get; set; }
         public List<Guid>? DocumentIds { get; set; }
     }
+    public class CaseUpdateVerificationRequestDto
+    {
+        public Guid CaseId { get; set; }
+        public CaseApprovalStatus ApprovalStatus { get; set; }
+        public string RejectionReason { get; set; } = default!;
+    }
 }

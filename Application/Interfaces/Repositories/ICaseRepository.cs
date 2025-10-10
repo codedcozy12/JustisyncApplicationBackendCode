@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Application.Dto;
+using Domain.Entities;
 using Domain.Enums;
 
 namespace Application.Interfaces.Repositories
@@ -18,6 +19,7 @@ namespace Application.Interfaces.Repositories
         Task<IEnumerable<JudgeCourt>> GetJudgeHistoryForCourtAsync(Guid courtId);
         Task<IEnumerable<Case>> GetCasesByOffenseTypeAsync(OffenseType offenseType);
         Task<IEnumerable<Case>> GetPendingCasesAsync();
+        Task<IEnumerable<Case>> GetPendingVerificationCaseAsync(PageRequest pageRequest);
         Task<IEnumerable<Case>> GetClosedCasesAsync();
     }
 }

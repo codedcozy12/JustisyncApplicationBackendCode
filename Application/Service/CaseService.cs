@@ -342,6 +342,50 @@ namespace Application.Service
 
             _logger.LogInformation("Notification sent to {Count} parties for Case ID {CaseId}", parties.Count(), caseId);
         }
+
+        public async Task<ResponseDto<string>> VerifyCaseJurisdictionAsync(CaseUpdateVerificationRequestDto request)
+        {
+            try
+            {
+                var caseEntity = await _caseRepository.GetCaseByIdAsync(request.CaseId);
+                if (caseEntity == null)
+                {
+                    _logger.LogWarning("Verification failed: case {CaseId} not found.", request.CaseId);
+                    return ResponseDto<string>.Fail("Case not found.");
+                }
+
+                if (request.ApprovalStatus == CaseApprovalStatus.Approved)
+                {
+                    caseEntity.ApprovalStatus = CaseApprovalStatus.Approved;
+                    caseEntity.RejectionReason = null;
+                    caseEntity.DateModified = DateTime.UtcNow;
+                    _logger.LogInformation("Case {CaseId} approved successfully by registrar.", request.CaseId);
+                }
+                else if (request.ApprovalStatus == CaseApprovalStatus.Rejected)
+                {
+                    caseEntity.ApprovalStatus = CaseApprovalStatus.Rejected;
+                    caseEntity.RejectionReason = request.RejectionReason;
+                    caseEntity.DateModified = DateTime.UtcNow;
+                    _logger.LogInformation("Case {CaseId} rejected by registrar. Reason: {Reason}",
+                        request.CaseId, request.RejectionReason);
+                }
+                else
+                {
+                    _logger.LogWarning("Invalid approval status for case {CaseId}.", request.CaseId);
+                    return ResponseDto<string>.Fail("Invalid approval status.");
+                }
+
+                await _caseRepository.UpdateCaseAsync(caseEntity);
+                await _unitOfWork.SaveChangesAsync();
+
+                return ResponseDto<string>.Success("Case verification status updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occurred while verifying case {CaseId}.", request.CaseId);
+                return ResponseDto<string>.Fail("An error occurred during verification.");
+            }
+        }
         private CaseDto MapToDto(Case c)
         {
             return new CaseDto

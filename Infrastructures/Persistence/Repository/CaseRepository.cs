@@ -1,4 +1,5 @@
-﻿using Application.Interfaces.Repositories;
+﻿using Application.Dto;
+using Application.Interfaces.Repositories;
 using Domain.Entities;
 using Domain.Enums;
 using Infrastructures.Persistence.Context;
@@ -129,6 +130,19 @@ namespace Infrastructures.Persistence.Repository
                 .Include(c => c.Court)
                 .ToListAsync();
         }
+
+        public async Task<IEnumerable<Case>> GetPendingVerificationCaseAsync(PageRequest pageRequest)
+        {
+            return await _context.Cases
+                .Where(c => c.ApprovalStatus == CaseApprovalStatus.pending)
+                .Include(c => c.Lawyer)
+                .Include(c => c.Client)
+                .Include(c => c.Court)
+                .Skip((pageRequest.PageNumber - 1) * pageRequest.PageSize)
+                .Take(pageRequest.PageSize)
+                .ToListAsync();
+        }
+
         public async Task UpdateCaseAsync(Case updatedCase)
         {
             _context.Cases.Update(updatedCase);
