@@ -7,5 +7,6 @@
         public User User { get; set; } = default!;
         public DateTime StartedAt { get; set; } = DateTime.UtcNow;
         public ICollection<AiChatMessage> Messages { get; set; } = [];
+        public bool IsDeleted { get; set; }
     }
 }

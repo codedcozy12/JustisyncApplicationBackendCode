@@ -55,6 +55,8 @@ namespace Application.Service
                 _logger.LogWarning("AI Conversation Session deletion failed: Session with Id {SessionId} not found", sessionId);
                 return;
             }
+
+            session.IsDeleted = true;
             await _aiConversationSessionRepository.UpdateAsync(session);
             await _unitOfWork.SaveChangesAsync();
             _logger.LogInformation("AI Conversation Session with Id {SessionId} deleted successfully", sessionId);
@@ -76,7 +78,15 @@ namespace Application.Service
             var sessionDto = new AiConversationSessionDto
             {
                 Id = session.Id,
-                UserId = session.UserId
+                UserId = session.UserId,
+                Messages = session.Messages.Select(A => new AiChatMessageDto
+                {
+                    AIConversationSessionId = A.AIConversationSessionId,
+                    Id = A.Id,
+                    Sender = A.Sender,
+                    SentAt = A.SentAt,
+                    Message = A.Message
+                }).ToList()
             };
             return new ResponseDto<AiConversationSessionDto>
             {
@@ -88,7 +98,7 @@ namespace Application.Service
         public async Task<ResponseDto<IEnumerable<AiConversationSessionDto>>> GetSessionsByUserIdAsync(Guid userId)
         {
             var sessions = await _aiConversationSessionRepository.GetAllAsync();
-            var filteredSessions = sessions.Where(s => s.UserId == userId).ToList();
+            var filteredSessions = sessions.Where(s => s.UserId == userId && s.IsDeleted == false).ToList();
 
             if (!filteredSessions.Any())
             {

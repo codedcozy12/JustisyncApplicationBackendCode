@@ -21,14 +21,6 @@ public class CourtConfiguration : IEntityTypeConfiguration<Court>
             .IsRequired()
             .HasMaxLength(100);
 
-        builder.Property(c => c.Address)
-            .IsRequired()
-            .HasMaxLength(200);
-
-        builder.Property(c => c.City)
-            .IsRequired()
-            .HasMaxLength(100);
-
         builder.Property(c => c.State)
             .IsRequired()
             .HasMaxLength(100);

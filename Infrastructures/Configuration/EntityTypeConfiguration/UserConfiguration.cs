@@ -43,10 +43,6 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
                    .HasForeignKey(m => m.ReceiverId)
                    .OnDelete(DeleteBehavior.Restrict);
 
-            builder.HasMany(u => u.UserCourtSessions)
-                   .WithOne(ucs => ucs.User)
-                   .HasForeignKey(ucs => ucs.UserId);
-
             builder.HasMany(u => u.Notifications)
                    .WithOne(n => n.User)
                    .HasForeignKey(n => n.UserId);

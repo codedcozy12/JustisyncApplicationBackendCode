@@ -37,12 +37,6 @@ namespace JustiSync.Infrastructure.Configurations
             builder.Property(c => c.OffenseLocation)
                 .HasMaxLength(255);
 
-            builder.Property(c => c.AiAnalysisSummary)
-                .HasMaxLength(4000);
-
-            builder.Property(c => c.PrecedentComparisonResult)
-                .HasMaxLength(4000);
-
             builder.HasOne(c => c.Court)
                 .WithMany(court => court.CourtCases)
                 .HasForeignKey(c => c.CourtId)

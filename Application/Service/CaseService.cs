@@ -16,6 +16,7 @@ namespace Application.Service
     {
         private readonly ICaseRepository _caseRepository;
         private readonly ICasePartyRepository _casePartyRepository;
+        private readonly ICourtSessionRepository _courtSessionRepository;
         private readonly ICaseProceedingRecordRepository _proceedingRepository;
         private readonly IJudgeRepository _judgeRepository;
         private readonly ICourtRepository _courtRepository;
@@ -29,7 +30,7 @@ namespace Application.Service
         private readonly ILogger<CaseService> _logger;
         private readonly IAuditLogService _auditLogService;
 
-        public CaseService(ICaseRepository caseRepository, ICasePartyRepository casePartyRepository, ICaseProceedingRecordRepository proceedingRepository, INotificationService notificationService, ILogger<CaseService> logger, IUnitOfWork unitOfWork, IAuditLogService auditLogService, ILawyerRepository lawyerRepository, IDocumentService documentService, IDocumentRepository documentRepository, IUploadService uploadService, IEmailService emailService, IJudgeRepository judgeRepository, ICourtRepository courtRepository)
+        public CaseService(ICaseRepository caseRepository, ICasePartyRepository casePartyRepository, ICaseProceedingRecordRepository proceedingRepository, INotificationService notificationService, ILogger<CaseService> logger, IUnitOfWork unitOfWork, IAuditLogService auditLogService, ILawyerRepository lawyerRepository, IDocumentService documentService, IDocumentRepository documentRepository, IUploadService uploadService, IEmailService emailService, IJudgeRepository judgeRepository, ICourtRepository courtRepository, ICourtSessionRepository courtSessionRepository)
         {
             _caseRepository = caseRepository;
             _casePartyRepository = casePartyRepository;
@@ -45,6 +46,7 @@ namespace Application.Service
             _emailService = emailService;
             _judgeRepository = judgeRepository;
             _courtRepository = courtRepository;
+            _courtSessionRepository = courtSessionRepository;
         }
         public async Task<ResponseDto<CaseDto>> AssignJudgeAndScheduleAsync(Guid caseId, Guid registrarId, Guid judgeId, DateTime scheduledDate)
         {
@@ -354,12 +356,41 @@ namespace Application.Service
                     return ResponseDto<string>.Fail("Case not found.");
                 }
 
+                var judge = await _judgeRepository.GetByIdAsync(caseEntity.JudgeId.Value);
+
+                if (judge is null)
+                {
+                    return ResponseDto<string>.Fail("Judge Not Found");
+                }
+
                 if (request.ApprovalStatus == CaseApprovalStatus.Approved)
                 {
                     caseEntity.ApprovalStatus = CaseApprovalStatus.Approved;
+                    caseEntity.Status = CaseStatus.Scheduled;
                     caseEntity.RejectionReason = null;
                     caseEntity.DateModified = DateTime.UtcNow;
+                    var courtSession = new CourtSession
+                    {
+                        CaseId = caseEntity.Id,
+                        ScheduledDate = request.ScheduleDate,
+                        EndTime = DateTime.UtcNow,
+                        StartTime = DateTime.UtcNow,
+                        Status = CourtSessionStatus.SCHEDULED,
+                        JudgeId = caseEntity.JudgeId.Value,
+                        CourtId = caseEntity.CourtId.Value,
+                        DateCreated = DateTime.UtcNow,
+                        DateModified = DateTime.UtcNow
+                    };
+                    await _courtSessionRepository.AddAsync(courtSession);
                     _logger.LogInformation("Case {CaseId} approved successfully by registrar.", request.CaseId);
+
+                    foreach (var party in caseEntity.CaseParties)
+                    {
+                        await SendMailToCasePartyAsync(party.ContactEmail, party.FullName, caseEntity.CaseNumber, caseEntity.ModifiedBy, courtSession.ScheduledDate);
+                    }
+
+                    await SendMailToJudgeAsync(judge.User.Email, judge.User.FirstName, caseEntity.CaseNumber, caseEntity.Court.Name, courtSession.ScheduledDate);
+
                 }
                 else if (request.ApprovalStatus == CaseApprovalStatus.Rejected)
                 {

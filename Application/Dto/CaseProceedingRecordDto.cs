@@ -1,4 +1,6 @@
-﻿namespace Application.Dto
+﻿using Domain.Enums;
+
+namespace Application.Dto
 {
     public class CaseProceedingRecordDto
     {
@@ -8,9 +10,12 @@
             public Guid? CourtSessionId { get; set; }
             public string? Notes { get; set; }
             public DateTime ProceedingDate { get; set; }
-            public string Description { get; set; } = default!;
+            public string? Description { get; set; }
             public string? Outcome { get; set; }
-        }
+            public string? RecordingLink { get; set; }
+            public string? SessionLink { get; set; }
+            public ProceedingType ProceedingType { get; set; }
+    }
     public class CaseProceedingRecordCreateDto
     {
         public Guid CaseId { get; set; }

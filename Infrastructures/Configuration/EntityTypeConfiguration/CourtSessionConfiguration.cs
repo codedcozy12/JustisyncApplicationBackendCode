@@ -26,10 +26,6 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
                    .HasConversion<string>()
                    .HasMaxLength(30);
 
-            builder.Property(cs => cs.Outcome)
-                   .IsRequired()
-                   .HasMaxLength(500);
-
             builder.HasOne(cs => cs.Case)
                    .WithMany(c => c.CourtSessions)
                    .HasForeignKey(cs => cs.CaseId)

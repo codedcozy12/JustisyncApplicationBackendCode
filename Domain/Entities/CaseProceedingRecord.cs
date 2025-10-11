@@ -9,7 +9,7 @@ namespace Domain.Entities
         public Guid CourtSessionId { get; set; }            
         public ProceedingType Type { get; set; }  
         public required string Title { get; set; }
-        public required string Description { get; set; }           
+        public required string Description { get; set; }         
         public ProceedingStatus Status { get; set; }         
         public DateTime ScheduledDate { get; set; } 
         public DateTime? CompletedDate { get; set; }        

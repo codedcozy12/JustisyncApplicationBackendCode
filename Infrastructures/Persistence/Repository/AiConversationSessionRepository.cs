@@ -44,5 +44,10 @@ namespace Infrastructures.Persistence.Repository
                 .Include(s => s.User)
                 .ToListAsync();
         }
+
+        public async Task DeleteAsync(Guid id)
+        {
+            _context.Update(id);
+        }
     }
 }

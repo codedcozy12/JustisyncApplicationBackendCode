@@ -27,8 +27,6 @@ namespace Application.Dto
         public required string Title { get; set; }
         public Guid ClientId { get; set; }
         public Guid LawyerId { get; set; }
-        //public Guid CourtId { get; set; }
-        //public Guid JudgeId { get; set; }
         public OffenseType OffenseType { get; set; }
         public string OffenseLocation { get; set; } = default!;
         public string Description { get; set; } = default!;
@@ -51,5 +49,6 @@ namespace Application.Dto
         public Guid CaseId { get; set; }
         public CaseApprovalStatus ApprovalStatus { get; set; }
         public string RejectionReason { get; set; } = default!;
+        public DateTime ScheduleDate { get; set; }
     }
 }

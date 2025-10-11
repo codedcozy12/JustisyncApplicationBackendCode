@@ -26,7 +26,5 @@ namespace Domain.Entities
         public ICollection<Document> Documents { get; set; } = [];
         public ICollection<CaseProceedingRecord> Proceedings { get; set; } = [];
         public ICollection<CourtSession> CourtSessions { get; set; } = [];
-        public string? AiAnalysisSummary { get; set; }
-        public string? PrecedentComparisonResult { get; set; }
     }
 }

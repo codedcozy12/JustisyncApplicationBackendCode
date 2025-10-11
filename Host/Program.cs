@@ -38,6 +38,7 @@ builder.Services.AddScoped<ICourtRepository, CourtRepository>();
 builder.Services.AddScoped<INotificationRepository, NotificationRepository>();
 builder.Services.AddScoped<IAuditLogRepository, AuditLogRepository>();
 builder.Services.AddScoped<IJurisdictionRepository, JurisdictionRepository>();
+builder.Services.AddScoped<ICourtSessionRepository, CourtSessionRepository>();
 builder.Services.AddScoped<IAiConversationSessionRepository, AiConversationSessionRepository>();
 builder.Services.AddScoped<IAiChatMessageRepository, AiChatMessageRepository>();
 builder.Services.AddScoped<IChatRepository, ChatRepository>();
@@ -58,6 +59,7 @@ builder.Services.AddScoped<ILawyerService, LawyerService>();
 builder.Services.AddScoped<IJudgeService, JudgeService>();
 builder.Services.AddScoped<IRegistrarService, RegistrarService>();
 builder.Services.AddScoped<ICertificateService, CertificateService>();
+builder.Services.AddScoped<ICourtSessionService, CourtSessionService>();
 builder.Services.AddScoped<ICourtService, CourtService>();
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IJurisdictionService, JurisdictionService>();
@@ -105,11 +107,9 @@ builder.Services.AddAuthentication(config =>
                 path.StartsWithSegments("/chathub"))
             {
                 context.Token = accessToken;
-            }
-             
+            }       
         }
     };
-
 });
 
 builder.Services.Configure<JwtSettings>(builder.Configuration.GetSection("JwtSettings"));

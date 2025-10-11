@@ -8,4 +8,5 @@ public interface IAiConversationSessionRepository
     Task<IEnumerable<AiConversationSession>> GetByUserAsync(Guid userId);
     Task AddAsync(AiConversationSession session);
     Task UpdateAsync(AiConversationSession session);
+    Task DeleteAsync(Guid id);
 }

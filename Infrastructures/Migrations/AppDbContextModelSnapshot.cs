@@ -85,6 +85,11 @@ namespace Infrastructures.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
+                    b.Property<bool>("IsDeleted")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
+
                     b.Property<DateTime>("StartedAt")
                         .HasColumnType("datetime(6)");
 
@@ -147,10 +152,6 @@ namespace Infrastructures.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("AiAnalysisSummary")
-                        .HasMaxLength(4000)
-                        .HasColumnType("varchar(4000)");
-
                     b.Property<int>("ApprovalStatus")
                         .HasColumnType("int");
 
@@ -200,10 +201,6 @@ namespace Infrastructures.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
-
-                    b.Property<string>("PrecedentComparisonResult")
-                        .HasMaxLength(4000)
-                        .HasColumnType("varchar(4000)");
 
                     b.Property<Guid>("RegistrarId")
                         .HasColumnType("char(36)");
@@ -477,16 +474,6 @@ namespace Infrastructures.Migrations
                     b.Property<Guid>("Id")
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("Address")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("varchar(200)");
-
-                    b.Property<string>("City")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("varchar(100)");
-
                     b.Property<string>("ContactEmail")
                         .IsRequired()
                         .HasMaxLength(150)
@@ -574,11 +561,6 @@ namespace Infrastructures.Migrations
 
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("longtext");
-
-                    b.Property<string>("Outcome")
-                        .IsRequired()
-                        .HasMaxLength(500)
-                        .HasColumnType("varchar(500)");
 
                     b.Property<DateTime>("ScheduledDate")
                         .HasColumnType("datetime(6)");
@@ -932,39 +914,6 @@ namespace Infrastructures.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
-            modelBuilder.Entity("Domain.Entities.UserCourtSession", b =>
-                {
-                    b.Property<Guid>("UserId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<Guid>("CourtSessionId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("DateCreated")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime>("DateModified")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<Guid>("Id")
-                        .HasColumnType("char(36)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("longtext");
-
-                    b.HasKey("UserId", "CourtSessionId");
-
-                    b.HasIndex("CourtSessionId");
-
-                    b.ToTable("UserCourtSessions", (string)null);
-                });
-
             modelBuilder.Entity("CourtJurisdictions", b =>
                 {
                     b.HasOne("Domain.Entities.Court", null)
@@ -1259,25 +1208,6 @@ namespace Infrastructures.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Domain.Entities.UserCourtSession", b =>
-                {
-                    b.HasOne("Domain.Entities.CourtSession", "CourtSession")
-                        .WithMany("UserCourtSessions")
-                        .HasForeignKey("CourtSessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Domain.Entities.User", "User")
-                        .WithMany("UserCourtSessions")
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("CourtSession");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Domain.Entities.AiConversationSession", b =>
                 {
                     b.Navigation("Messages");
@@ -1313,8 +1243,6 @@ namespace Infrastructures.Migrations
             modelBuilder.Entity("Domain.Entities.CourtSession", b =>
                 {
                     b.Navigation("Proceedings");
-
-                    b.Navigation("UserCourtSessions");
                 });
 
             modelBuilder.Entity("Domain.Entities.Judge", b =>
@@ -1340,8 +1268,6 @@ namespace Infrastructures.Migrations
                     b.Navigation("SentMessages");
 
                     b.Navigation("UserChats");
-
-                    b.Navigation("UserCourtSessions");
                 });
 #pragma warning restore 612, 618
         }

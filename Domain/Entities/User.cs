@@ -15,7 +15,6 @@ namespace Domain.Entities
             public Role Role { get; set; }
             public string? ProfilePictureUrl { get; set; }
             public bool IsEmailConfirmed { get; set; } = false;
-            public ICollection<UserCourtSession> UserCourtSessions { get; set; } = [];
             public ICollection<Notification> Notifications { get; set; } = [];
             public ICollection<Chat> UserChats { get; set; } = [];
             public ICollection<ChatMessage> SentMessages { get; set; } = [];

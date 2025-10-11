@@ -20,6 +20,10 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
             builder.Property(c => c.StartedAt)
                    .IsRequired();
 
+            builder.Property(x => x.IsDeleted)
+            .IsRequired()
+            .HasDefaultValue(false);
+
             builder.HasMany(c => c.Messages)
                    .WithOne(m => m.AIConversationSession)
                    .HasForeignKey(m => m.AIConversationSessionId)

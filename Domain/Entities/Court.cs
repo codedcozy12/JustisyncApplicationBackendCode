@@ -6,8 +6,6 @@ namespace Domain.Entities
     {
             public required string Name { get; set; }
             public required string Type { get; set; }
-            public required string Address { get; set; }
-            public required string City { get; set; }
             public required string State { get; set; }
             public required string ContactEmail { get; set; }
             public required string ContactPhone { get; set; }

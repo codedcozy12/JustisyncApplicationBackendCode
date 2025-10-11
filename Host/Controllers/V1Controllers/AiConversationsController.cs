@@ -2,6 +2,7 @@
 using Application.Interfaces.Service;
 using Domain.Entities;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -120,7 +121,7 @@ namespace Host.Controllers.V1Controllers
         {
             await _aiConversationSessionService.DeleteSessionAsync(sessionId);
             _logger.LogInformation("AI conversation session {SessionId} deleted successfully.", sessionId);
-            return NoContent();
+            return Ok();
         }
     }
 }
