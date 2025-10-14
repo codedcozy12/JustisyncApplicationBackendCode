@@ -202,7 +202,7 @@ namespace Infrastructures.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("varchar(100)");
 
-                    b.Property<Guid>("RegistrarId")
+                    b.Property<Guid?>("RegistrarId")
                         .HasColumnType("char(36)");
 
                     b.Property<string>("RejectionReason")
@@ -559,6 +559,17 @@ namespace Infrastructures.Migrations
                     b.Property<Guid>("JudgeId")
                         .HasColumnType("char(36)");
 
+                    b.Property<string>("MeetingAccessToken")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("varchar(1000)");
+
+                    b.Property<DateTime>("MeetingEndTime")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("MeetingJoinTime")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("longtext");
 
@@ -572,6 +583,15 @@ namespace Infrastructures.Migrations
                         .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("varchar(30)");
+
+                    b.Property<string>("VirtualMeetingRoom")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<string>("VirtualMeetingUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("varchar(500)");
 
                     b.HasKey("Id");
 
@@ -991,10 +1011,9 @@ namespace Infrastructures.Migrations
                         .IsRequired();
 
                     b.HasOne("Domain.Entities.Registrar", "Registrar")
-                        .WithMany()
+                        .WithMany("Cases")
                         .HasForeignKey("RegistrarId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Client");
 
@@ -1255,6 +1274,11 @@ namespace Infrastructures.Migrations
             modelBuilder.Entity("Domain.Entities.Lawyer", b =>
                 {
                     b.Navigation("Certificates");
+                });
+
+            modelBuilder.Entity("Domain.Entities.Registrar", b =>
+                {
+                    b.Navigation("Cases");
                 });
 
             modelBuilder.Entity("Domain.Entities.User", b =>

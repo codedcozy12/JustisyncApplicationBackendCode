@@ -68,6 +68,15 @@ namespace Infrastructures.Configuration.EntityTypeConfiguration
             builder.HasIndex(cs => new { cs.JudgeId, cs.ScheduledDate })
                    .IsUnique()
                    .HasDatabaseName("IX_Judge_ScheduledDate_Unique");
+
+            builder.Property(cs => cs.VirtualMeetingUrl)
+              .HasMaxLength(500);
+
+            builder.Property(cs => cs.VirtualMeetingRoom)
+                   .HasMaxLength(200);
+
+            builder.Property(cs => cs.MeetingAccessToken)
+                   .HasMaxLength(1000);
         }
     }
 }

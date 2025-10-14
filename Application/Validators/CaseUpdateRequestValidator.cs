@@ -8,11 +8,6 @@ public class CaseUpdateDtoValidator : AbstractValidator<CaseUpdateRequestDto>
         RuleFor(c => c.Id)
             .NotEmpty().WithMessage("Case ID is required for updates.");
 
-        RuleFor(c => c.CaseNumber)
-            .MaximumLength(50)
-            .When(c => !string.IsNullOrWhiteSpace(c.CaseNumber))
-            .WithMessage("Case number must not exceed 50 characters.");
-
         RuleFor(c => c.LawyerId)
             .NotEmpty()
             .When(c => c.LawyerId.HasValue)

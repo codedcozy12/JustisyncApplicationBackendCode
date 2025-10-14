@@ -2,6 +2,7 @@
 using Application.Interfaces.AuthService;
 using Application.IService;
 using Domain.Enums;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -23,6 +24,7 @@ namespace Host.Controllers.V1Controllers
             _logger = logger;
             _authService = authService;
         }
+
         [HttpPost]
         [SwaggerOperation(Summary = "Create a new lawyer", Description = "Registers a new lawyer in the system using the provided details.")]
         public async Task<ActionResult<LawyerCreateRequestDto?>> CreateLawyer([FromForm] LawyerCreateRequestDto request)
@@ -30,6 +32,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _lawyerService.CreateLawyerAsync(request);
             return Ok(result);
         }
+        [Authorize(Roles = "lawyer, admin, client")]
         [HttpGet("{lawyerId:guid}")]
         [SwaggerOperation(
             Summary = "Get lawyer by ID",
@@ -40,6 +43,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _lawyerService.GetLawyerByIdAsync(lawyerId);
             return Ok(result);
         }
+        [Authorize(Roles = "admin, client, lawyer")]
         [HttpGet]
         [SwaggerOperation(
             Summary = "Get all lawyers",
@@ -50,16 +54,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _lawyerService.GetAllLawyersAsync();
             return Ok(result);
         }
-        [HttpPut("{lawyerId:guid}")]
-        [SwaggerOperation(
-            Summary = "Update lawyer details",
-            Description = "Updates profile information of a specific lawyer."
-        )]
-        public async Task<ActionResult<LawyerUpdateRequestDto>> UpdateLawyer(Guid lawyerId, [FromBody] LawyerUpdateRequestDto request)
-        {
-            var result = await _lawyerService.UpdateLawyerAsync(lawyerId, request);
-            return Ok(result);
-        }
+        [Authorize(Roles = "lawyer, admin")]
         [HttpDelete("{lawyerId:guid}")]
         [SwaggerOperation(
             Summary = "Delete a lawyer",
@@ -70,6 +65,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _lawyerService.DeleteLawyerAsync(lawyerId);
             return Ok(result);
         }
+        [Authorize(Roles = "lawyer")]
         [HttpPost("{lawyerId:guid}/certificates")]
         [Consumes("multipart/form-data")]
         [SwaggerOperation(
@@ -81,6 +77,7 @@ namespace Host.Controllers.V1Controllers
            var result = await _lawyerService.UploadCertificatesAsync(lawyerId, requests);
             return Ok(result);
         }
+        [Authorize(Roles = "admin, client, lawyer")]
         [HttpGet("verified")]
         [SwaggerOperation(
             Summary = "Get verified lawyers",
@@ -91,8 +88,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _lawyerService.GetVerifiedLawyersAsync();
             return Ok(result);
         }
-
-
+        [Authorize(Roles = "admin")]
         [HttpGet("pending")]
         [SwaggerOperation(
             Summary = "Get pending lawyers",
@@ -103,7 +99,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _lawyerService.GetPendingLawyers(pageRequest);
             return Ok(result);
         }
-
+        [Authorize(Roles = "admin")]
         [HttpPut("certificates/{lawyerId:guid}/verify")]
         [SwaggerOperation(
             Summary = "Verify certificate",
@@ -114,7 +110,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _lawyerService.VerifyCertificateAsync(lawyerId, request);
             return Ok(result);
         }
-
+        [Authorize(Roles = "admin, lawyer")]
         [HttpGet("{lawyerId:guid}/certificates")]
         [SwaggerOperation(
             Summary = "Get certificates of a lawyer",
@@ -125,6 +121,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _lawyerService.GetCertificatesByLawyerAsync(lawyerId);
             return Ok(result);
         }
+        [Authorize(Roles = "admin")]
         [HttpPut("{lawyerId:guid}/verification-status")]
         [SwaggerOperation(
            Summary = "Update lawyer verification status",
@@ -135,6 +132,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _lawyerService.UpdateVerificationStatusAsync(lawyerId, status);
             return Ok(result);
         }
+        [Authorize(Roles = "admin, client, lawyer")]
         [HttpGet("search")]
         [SwaggerOperation(
           Summary = "Search lawyers",

@@ -1,6 +1,7 @@
 ﻿using Application.Dto;
 using Application.Interfaces.Service;
 using Domain.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
@@ -22,6 +23,7 @@ namespace Host.Controllers.V1Controllers
             _aiConversationSessionService = aiConversationSessionService;
             _aiChatMessageService = aiChatMessageService;
         }
+        [Authorize]
         [HttpGet("messages/{id:guid}")]
         [SwaggerOperation(Summary = "Get a single AI chat message by ID", Description = "Retrieves a single chat message based on its unique identifier.")]
         public async Task<IActionResult> GetMessageById(Guid id)
@@ -29,7 +31,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _aiChatMessageService.GetByIdAsync(id);
             return Ok(result);
         }
-
+        [Authorize]
         [HttpGet("messages")]
         [SwaggerOperation(Summary = "Get all AI chat messages", Description = "Retrieves all chat messages from the database.")]
         public async Task<IActionResult> GetAllMessages()
@@ -37,7 +39,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _aiChatMessageService.GetAllAsync();
             return Ok(result);
         }
-
+        [Authorize]
         [HttpPost("messages")]
         [SwaggerOperation(Summary = "Add a new chat message", Description = "Saves a new chat message under an existing AI conversation session.")]
         public async Task<IActionResult> AddMessage([FromBody] AichatMessageCreateRequestDto request)
@@ -45,7 +47,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _aiChatMessageService.AddMessageAsync(request);
             return Ok(result);
         }
-
+        [Authorize]
         [HttpPut("messages")]
         [SwaggerOperation(Summary = "Update a chat message", Description = "Modifies the text content of an existing chat message.")]
         public async Task<IActionResult> UpdateMessage([FromBody] AichatMessageUpdateRequestDto request)
@@ -59,7 +61,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _aiChatMessageService.UpdateMessageAsync(messageEntity);
             return Ok(result);
         }
-
+        [Authorize]
         [HttpGet("messages/session/{sessionId:guid}")]
         [SwaggerOperation(Summary = "Get all messages in a session", Description = "Retrieves all chat messages associated with a specific AI conversation session.")]
         public async Task<IActionResult> GetMessagesBySession(Guid sessionId)
@@ -67,7 +69,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _aiChatMessageService.GetMessagesBySessionAsync(sessionId);
             return Ok(result);
         }
-
+        [Authorize]
         [HttpGet("messages/user/{userId:guid}")]
         [SwaggerOperation(Summary = "Get messages by user", Description = "Retrieves all chat messages sent or received by a specific user.")]
         public async Task<IActionResult> GetMessagesByUser(Guid userId)
@@ -75,7 +77,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _aiChatMessageService.GetMessagesByUserAsync(userId);
             return Ok(result);
         }
-
+        [Authorize]
         [HttpGet("messages/session/{sessionId:guid}/range")]
         [SwaggerOperation(Summary = "Get messages within time range", Description = "Retrieves all chat messages within a specified date range for a session.")]
         public async Task<IActionResult> GetMessagesInTimeRange(Guid sessionId, [FromQuery] DateTime start, [FromQuery] DateTime end)
@@ -83,7 +85,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _aiChatMessageService.GetMessagesInTimeRangeAsync(sessionId, start, end);
             return Ok(result);
         }
-
+        [Authorize]
         [HttpGet("messages/session/{sessionId:guid}/last")]
         [SwaggerOperation(Summary = "Get last message in session", Description = "Retrieves the most recent chat message in a specific conversation session.")]
         public async Task<IActionResult> GetLastMessageInSession(Guid sessionId)
@@ -91,7 +93,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _aiChatMessageService.GetLastMessageInSessionAsync(sessionId);
             return Ok(result);
         }
-
+        [Authorize]
         [HttpPost("sessions")]
         [SwaggerOperation(Summary = "Create a new conversation session", Description = "Starts a new AI conversation session for a specific user.")]
         public async Task<IActionResult> CreateSession([FromBody] AiConversationSessionCreateRequestDto request)
@@ -99,7 +101,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _aiConversationSessionService.CreateSessionAsync(request);
             return Ok(result);
         }
-
+        [Authorize]
         [HttpGet("sessions/{sessionId:guid}")]
         [SwaggerOperation(Summary = "Get session by ID", Description = "Retrieves details of a specific AI conversation session by ID.")]
         public async Task<IActionResult> GetSessionById(Guid sessionId)
@@ -107,6 +109,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _aiConversationSessionService.GetSessionByIdAsync(sessionId);
             return Ok(result);
         }
+        [Authorize]
         [HttpGet("sessions/user/{userId:guid}")]
         [SwaggerOperation(Summary = "Get sessions by user", Description = "Retrieves all AI conversation sessions belonging to a specific user.")]
         public async Task<IActionResult> GetSessionsByUser(Guid userId)
@@ -114,7 +117,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _aiConversationSessionService.GetSessionsByUserIdAsync(userId);
             return Ok(result);
         }
-
+        [Authorize]
         [HttpDelete("sessions/{sessionId:guid}")]
         [SwaggerOperation(Summary = "Delete conversation session", Description = "Deletes a specific AI conversation session and all related messages.")]
         public async Task<IActionResult> DeleteSession(Guid sessionId)

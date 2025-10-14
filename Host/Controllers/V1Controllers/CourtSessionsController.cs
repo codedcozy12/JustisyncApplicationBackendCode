@@ -31,6 +31,37 @@ namespace Host.Controllers.V1Controllers
             var result = await _courtSessionService.GetByCourtIdAsync(courtId);
             return Ok(result);
         }
+
+        [HttpPut("start/{sessionId:guid}")]
+        [SwaggerOperation(Summary = "Start a virtual court session", Description = "Marks a scheduled court session as in progress and starts the virtual hearing.")]
+        public async Task<IActionResult> StartCourtSession(Guid sessionId)
+        {
+            if (sessionId == Guid.Empty)
+                return BadRequest("Invalid session ID.");
+
+            var result = await _courtSessionService.StartVirtualSessionAsync(sessionId);
+
+            if (!result.IsSuccess)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
+        [HttpPut("end/{sessionId:guid}")]
+        [SwaggerOperation(Summary = "End a court session", Description = "Marks an ongoing virtual court session as completed.")]
+        public async Task<IActionResult> EndCourtSession(Guid sessionId)
+        {
+            if (sessionId == Guid.Empty)
+                return BadRequest("Invalid session ID.");
+
+            var result = await _courtSessionService.EndCourtSessionAsync(sessionId);
+
+            if (!result.IsSuccess)
+                return NotFound(result);
+
+            return Ok(result);
+        }
+
         [HttpGet("{sessionId:guid}")]
         [SwaggerOperation(Summary = "Get court session by ID", Description = "Retrieves the details of a specific court session by its unique identifier.")]
         public async Task<IActionResult> GetById(Guid sessionId)

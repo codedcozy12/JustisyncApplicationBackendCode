@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Application.Interfaces.Service;
 using Swashbuckle.AspNetCore.Annotations;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Host.Controllers.V1Controllers
 
@@ -24,16 +25,15 @@ namespace Host.Controllers.V1Controllers
             _chatMessageService = chatMessageService;
             _logger = logger;
         }
-
+        [Authorize]
         [HttpPost("create")]
-
         [SwaggerOperation(Summary = "Create a new chat", Description = "Creates a new chat between current user and recipient.")]
         public async Task<IActionResult> CreateChat([FromBody] ChatCreateRequestDto request)
         {
             var response = await _chatService.CreateChatAsync(request);
             return Ok(response);
         }
-
+        [Authorize]
         [HttpGet("{chatId}")]
         [SwaggerOperation(Summary = "Get chat by Id", Description = "Retrieve a chat by its Id.")]
         public async Task<IActionResult> GetChatById(Guid chatId)
@@ -41,7 +41,7 @@ namespace Host.Controllers.V1Controllers
             var response = await _chatService.GetChatByIdAsync(chatId);
             return Ok(response);
         }
-
+        [Authorize]
         [HttpGet("user/{userId}")]
         [SwaggerOperation(Summary = "Get chats by user Id", Description = "Retrieve all chats for a given user.")]
         public async Task<IActionResult> GetChatsByUserId(Guid userId)
@@ -49,7 +49,7 @@ namespace Host.Controllers.V1Controllers
             var response = await _chatService.GetChatsByUserIdAsync(userId);
             return Ok(response);
         }
-
+        [Authorize]
         [HttpDelete("{chatId}")]
         [SwaggerOperation(Summary = "Delete a chat", Description = "Delete a chat by Id.")]
         public async Task<IActionResult> DeleteChat(Guid chatId)
@@ -57,7 +57,7 @@ namespace Host.Controllers.V1Controllers
             var response = await _chatService.DeleteChatAsync(chatId);
             return Ok(response);
         }
-
+        [Authorize]
         [HttpPost("message/send")]
         [SwaggerOperation(Summary = "Send a chat message", Description = "Send a new message in a specific chat.")]
         public async Task<IActionResult> SendMessage([FromBody] ChatMessageCreateRequestDto request)
@@ -65,7 +65,7 @@ namespace Host.Controllers.V1Controllers
             var response = await _chatMessageService.SendMessageAsync(request);
             return Ok(response);
         }
-
+        [Authorize]
         [HttpGet("messages/{chatId}")]
         [SwaggerOperation(Summary = "Get all chat messages", Description = "Retrieve all messages for a specific chat.")]
         public async Task<IActionResult> GetAllChatMessages(Guid chatId)
@@ -73,7 +73,7 @@ namespace Host.Controllers.V1Controllers
             var response = await _chatMessageService.GetAllChatMessagesAsync(chatId);
             return Ok(response);
         }
-
+        [Authorize]
         [HttpPatch("message/edit")]
         [SwaggerOperation(Summary = "Edit a chat message", Description = "Edit an existing chat message.")]
         public async Task<IActionResult> MarkChatAsRead([FromBody] Guid chatId, Guid UserId)
@@ -81,7 +81,7 @@ namespace Host.Controllers.V1Controllers
             var response = await _chatMessageService.MarkAllChatAsReadAsync(chatId, UserId);
             return Ok(response);
         }
-
+        [Authorize]
         [HttpGet("message/{messageId}")]
         [SwaggerOperation(Summary = "Get a chat message by Id", Description = "Retrieve a single chat message by Id.")]
         public async Task<IActionResult> GetMessageById(Guid messageId)

@@ -129,6 +129,7 @@ namespace Application.Service
         public async Task<ResponseDto<IEnumerable<LawyerDto>>> GetAllLawyersAsync()
         {
             var lawyers = await _lawyerRepository.GetAllAsync();
+            var filteredLawyers = lawyers.Where(l => !l.IsDeleted).ToList();
             if (lawyers == null || !lawyers.Any())
             {
                 _logger.LogInformation("No lawyers found");
@@ -270,7 +271,7 @@ namespace Application.Service
         public async Task<ResponseDto<LawyerDto>> GetLawyerByIdAsync(Guid lawyerId)
         {
             var lawyer = await _lawyerRepository.GetByIdAsync(lawyerId);
-            if (lawyer == null)
+            if (lawyer == null || lawyer.IsDeleted)
             {
                 _logger.LogWarning("Lawyer with Id: {LawyerId} not found", lawyerId);
                 return new ResponseDto<LawyerDto>
@@ -315,7 +316,7 @@ namespace Application.Service
         }
         public async Task<ResponseDto<IEnumerable<LawyerDto>>> SearchLawyersAsync(string? university, lawyerVerificationStatus? verificationStatus, LawyerSpecialization? specialization, PageRequest request)
         {
-            var lawyers = await _lawyerRepository.SearchAsync(x => (!specialization.HasValue||x.LawyerSpecialization == specialization.Value) && (!verificationStatus.HasValue || x.VerificationStatus == verificationStatus.Value) && (string.IsNullOrEmpty(university) || x.UniversityName.ToLower().Contains(university.ToLower())) , request);
+            var lawyers = await _lawyerRepository.SearchAsync(x => (!specialization.HasValue || x.LawyerSpecialization == specialization.Value) && (!verificationStatus.HasValue || x.VerificationStatus == verificationStatus.Value) && (string.IsNullOrEmpty(university) || x.UniversityName.ToLower().Contains(university.ToLower())), request);
             if (lawyers == null || !lawyers.Items.Any())
             {
                 _logger.LogInformation("No lawyers found for the search criteria");
@@ -358,29 +359,6 @@ namespace Application.Service
                 IsSuccess = true,
                 Message = "Lawyers retrieved successfully"
             };
-        }
-        public async Task<ResponseDto<string>> UpdateLawyerAsync(Guid lawyerId, LawyerUpdateRequestDto request)
-        {
-            if (request == null)
-            {
-                _logger.LogWarning("Lawyer update request is null");
-                return null;
-            }
-            var lawyer = await _lawyerRepository.GetByIdAsync(lawyerId);
-            if (lawyer == null)
-            {
-                _logger.LogWarning("Lawyer with Id: {LawyerId} not found", lawyerId);
-                return null;
-            }
-            lawyer.LawyerSpecialization = request.LawyerSpecialization;
-            lawyer.UniversityName = request.UniversityName;
-            lawyer.BarMembershipNumber = request.BarMembershipNumber;
-            lawyer.LawSchoolName = request.LawSchoolName;
-            await _lawyerRepository.UpdateAsync(lawyer);
-            await _unitOfWork.SaveChangesAsync();
-            _logger.LogInformation("Lawyer with Id: {LawyerId} updated successfully", lawyerId);
-            await _auditLogService.LogActionAsync(lawyer.UserId, "Update", "Lawyer", lawyer.Id, $"Lawyer {lawyer.User.FirstName} {lawyer.User.LastName} updated with ID {lawyer.Id}", Role.lawyer.ToString());
-            return ResponseDto<string>.Success($"Lawyer update is successful");
         }
         public async Task<ResponseDto<string>> UpdateVerificationStatusAsync(Guid lawyerId, LawyerUpdateVerifcationRequestDto request)
         {

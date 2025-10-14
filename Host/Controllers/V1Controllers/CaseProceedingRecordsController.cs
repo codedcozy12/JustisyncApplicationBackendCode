@@ -1,5 +1,6 @@
 ﻿using Application.Dto;
 using Application.Interfaces.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -17,6 +18,7 @@ namespace Host.Controllers.V1Controllers
             _logger = logger;
             _caseProceedingRecordService = caseProceedingRecordService;
         }
+        [Authorize]
         [HttpPost("create")]
         [SwaggerOperation(Summary = "Create case proceeding record", Description = "Creates a new proceeding record for a specific case.")]
         public async Task<IActionResult> CreateCaseProceedingRecord([FromBody] CaseProceedingRecordCreateDto newRecord, [FromQuery] Guid createdBy)
@@ -30,6 +32,7 @@ namespace Host.Controllers.V1Controllers
                 result
             );
         }
+        [Authorize]
         [HttpGet("case/{caseId:guid}")]
         [SwaggerOperation(Summary = "Get case proceeding records by case ID", Description = "Retrieves all proceeding records associated with a specific case.")]
         public async Task<IActionResult> GetCaseProceedingRecordsByCaseId(Guid caseId)
@@ -37,6 +40,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _caseProceedingRecordService.GetByCaseIdAsync(caseId);
             return Ok(result);
         }
+        [Authorize]
         [HttpGet("{proceedingId:guid}")]
         [SwaggerOperation(Summary = "Get case proceeding record by ID", Description = "Retrieves the details of a specific case proceeding record by its unique identifier.")]
         public async Task<IActionResult> GetCaseProceedingRecordById(Guid proceedingId)
@@ -46,6 +50,7 @@ namespace Host.Controllers.V1Controllers
                 return NotFound(result);
             return Ok(result);
         }
+        [Authorize(Roles = "registrar")]
         [HttpPut("update")]
         [SwaggerOperation(Summary = "Update case proceeding record", Description = "Updates the details of an existing case proceeding record.")]
         public async Task<IActionResult> UpdateCaseProceedingRecord([FromBody] CaseProceedingRecordUpdateDto updatedRecord, [FromQuery] Guid modifiedBy)

@@ -20,9 +20,9 @@ namespace Domain.Entities
         public required Guid LawyerId { get; set; }
         public Lawyer Lawyer { get; set; } = default!;
         public Guid? JudgeId { get; set; }
-        public Judge Judge { get; set; } = default!;
-        public Guid RegistrarId { get; set; }
-        public Registrar Registrar { get; set; } = default!;
+        public Judge? Judge { get; set; } = default!;
+        public Guid? RegistrarId { get; set; }
+        public Registrar? Registrar { get; set; } = default!;
         public ICollection<Document> Documents { get; set; } = [];
         public ICollection<CaseProceedingRecord> Proceedings { get; set; } = [];
         public ICollection<CourtSession> CourtSessions { get; set; } = [];

@@ -1,6 +1,7 @@
 ﻿using Application.Dto;
 using Application.Interfaces.AuthService;
 using Application.IService;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -28,6 +29,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _registrarService.CreateRegistrarAsync(request);
             return Ok(result);
         }
+        [Authorize(Roles = "admin,registrar")]
         [HttpGet("{registrarId:guid}")]
         [SwaggerOperation(Summary = "Get registrar by Id", Description = "Retrieves details of a registrar by their unique Id.")]
         public async Task<IActionResult> GetRegistrarById(Guid registrarId)
@@ -35,6 +37,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _registrarService.GetRegistrarByIdAsync(registrarId);
             return Ok(result);
         }
+        [Authorize(Roles = "admin")]
         [HttpGet]
         [SwaggerOperation(Summary = "Get all registrars", Description = "Retrieves a list of all registrars in the system.")]
         public async Task<IActionResult> GetAllRegistrars()
@@ -42,6 +45,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _registrarService.GetAllRegistrarsAsync();
             return Ok(result);
         }
+        [Authorize(Roles = "admin")]
         [HttpPut("{registrarId:guid}")]
         [SwaggerOperation(Summary = "Update registrar details", Description = "Updates the information of an existing registrar.")]
         public async Task<IActionResult> UpdateRegistrar(Guid registrarId, [FromBody] RegistrarUpdateRequestDto request)
@@ -49,6 +53,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _registrarService.UpdateRegistrarAsync(registrarId, request);
             return Ok(result);
         }
+        [Authorize(Roles ="admin")]
         [HttpDelete("{registrarId:guid}")]
         [SwaggerOperation(Summary = "Delete registrar", Description = "Deletes a registrar by their unique Id.")]
         public async Task<IActionResult> DeleteRegistrar(Guid registrarId)
@@ -57,6 +62,7 @@ namespace Host.Controllers.V1Controllers
             if (!success) return NotFound("Registrar not found or already deleted.");
             return Ok("Registrar deleted successfully.");
         }
+        [Authorize(Roles = "admin,registrar")]
         [HttpGet("by-court/{courtId:guid}")]
         [SwaggerOperation(Summary = "Get registrars by court", Description = "Retrieves a list of registrars assigned to a specific court.")]
         public async Task<IActionResult> GetRegistrarsByCourt(Guid courtId)
@@ -64,7 +70,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _registrarService.GetRegistrarsByCourtAsync(courtId);
             return Ok(result);
         }
-
+        [Authorize(Roles = "admin")]
         [HttpPost("assign-to-court")]
         [SwaggerOperation(Summary = "Assign registrar to a court", Description = "Assigns a registrar to a specified court with an optional appointment date.")]
         public async Task<IActionResult> AssignRegistrarToCourt([FromBody] AssignRegistrarRequestDto dto)

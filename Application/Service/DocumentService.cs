@@ -28,7 +28,7 @@ public class DocumentService : IDocumentService
     public async Task<ResponseDto<DocumentDto?>> GetDocumentByIdAsync(Guid documentId)
     {
         var doc = await _documentRepository.GetDocumentByIdAsync(documentId);
-        if (doc == null)
+        if (doc == null || doc.IsDeleted)
         {
             _logger.LogWarning("Document with ID {DocumentId} not found", documentId);
             return new ResponseDto<DocumentDto?>
@@ -59,6 +59,17 @@ public class DocumentService : IDocumentService
     public async Task<ResponseDto<IEnumerable<DocumentDto>>> GetDocumentsByCaseIdAsync(Guid caseId)
     {
         var docs = await _documentRepository.GetDocumentsByCaseIdAsync(caseId);
+        var filteredDocs = docs.Where(d => !d.IsDeleted);
+        if (filteredDocs == null || !filteredDocs.Any())
+        {
+            _logger.LogWarning("No documents found for Case ID {CaseId}", caseId);
+            return new ResponseDto<IEnumerable<DocumentDto>>
+            {
+                IsSuccess = false,
+                Message = "No documents found for this case",
+                Data = null
+            };
+        }
         var dtoList = new List<DocumentDto>();
 
         foreach (var doc in docs)
@@ -72,7 +83,6 @@ public class DocumentService : IDocumentService
                 FileUrl = doc.FileUrl
             });
         }
-
         return new ResponseDto<IEnumerable<DocumentDto>>
         {
             IsSuccess = true,

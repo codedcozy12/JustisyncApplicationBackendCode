@@ -9,5 +9,6 @@ namespace Domain.Entities
         public Court Court { get; set; } = default!;
         public User User { get; set; } = default!;
         public Guid UserId { get; set; }
+        public ICollection<Case> Cases { get; set; } = [];
     }
 }

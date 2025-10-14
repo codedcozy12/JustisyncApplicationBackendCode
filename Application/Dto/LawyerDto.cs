@@ -38,15 +38,6 @@ namespace Application.Dto
         public List<string> CertificateTypes { get; set; } = new();
         public List<IFormFile> CertificateFiles { get; set; } = new();
     }
-    public class LawyerUpdateRequestDto
-    {
-        public string? LawSchoolName { get; set; }
-        public string UniversityName { get; set; } = default!;
-        public string BarMembershipNumber { get; set; } = default!;
-        public lawyerVerificationStatus VerificationStatus { get; set; }
-        public List<CertificateUpdateRequestDto> Certificates { get; set; } = new();
-        public LawyerSpecialization LawyerSpecialization { get; set; }
-    }
     public class LawyerUpdateVerifcationRequestDto
     {
         public Guid LwayerId { get; set; }

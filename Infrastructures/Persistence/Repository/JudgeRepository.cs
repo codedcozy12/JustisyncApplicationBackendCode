@@ -45,6 +45,7 @@ namespace Infrastructures.Persistence.Repository
         {
             return await _context.Judges
                                  .Include(j => j.User)
+                                 .Include(Judge => Judge.JudgeCourts)
                                  .ToListAsync();
         }
         //public async Task<Judge?> GetByCaseIdAsync(Guid caseId)

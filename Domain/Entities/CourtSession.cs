@@ -16,5 +16,10 @@ namespace Domain.Entities
         public CourtSessionStatus Status { get; set; }
         public ICollection<User> Users { get; set; } = [];
         public ICollection<CaseProceedingRecord> Proceedings { get; set; } = [];
+        public string? VirtualMeetingUrl { get; set; }
+        public string VirtualMeetingRoom { get; set; } = default;
+        public string MeetingAccessToken { get; set; } = default;
+        public DateTime MeetingJoinTime { get; set; }
+        public DateTime MeetingEndTime { get; set; }
     }
 }

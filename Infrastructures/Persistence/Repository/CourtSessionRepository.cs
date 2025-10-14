@@ -50,6 +50,16 @@ namespace Infrastructures.Persistence.Repository
                 .Include(cs => cs.Users)
                 .FirstOrDefaultAsync(cs => cs.Id == id);
         }
+
+        public async Task<CourtSession?> GetByMeetingRoomAsync(string roomName)
+        {
+            return await _context.CourtSessions
+                .Include(cs => cs.Case)
+                .Include(cs => cs.Court)
+                .Include(cs => cs.Proceedings)
+                .FirstOrDefaultAsync(cs => cs.VirtualMeetingRoom == roomName);
+        }
+
         public async Task<IEnumerable<CourtSession>> GetUpcomingSessionsAsync(DateTime from, DateTime to)
         {
             return await _context.CourtSessions

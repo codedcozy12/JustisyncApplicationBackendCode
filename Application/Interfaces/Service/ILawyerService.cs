@@ -8,7 +8,6 @@ namespace Application.IService
         Task<ResponseDto<Guid>> CreateLawyerAsync(LawyerCreateRequestDto request);
         Task<ResponseDto<LawyerDto>> GetLawyerByIdAsync(Guid lawyerId);
         Task<ResponseDto<IEnumerable<LawyerDto>>> GetAllLawyersAsync();
-        Task<ResponseDto<string>> UpdateLawyerAsync(Guid lawyerId, LawyerUpdateRequestDto request);
         Task<bool> DeleteLawyerAsync(Guid lawyerId);
         Task<ResponseDto<string>> UploadCertificatesAsync(Guid lawyerId, CertificateUploadRequestDto requests);
         Task<ResponseDto<PageResponse<LawyerDto>>> GetPendingLawyers(PageRequest pageRequest);

@@ -11,6 +11,5 @@ namespace Application.Interfaces.Repositories
         Task<IEnumerable<Jurisdiction>> GetByCourtIdAsync(Guid courtId);
         Task<Jurisdiction> AddAsync(Jurisdiction jurisdiction);
         Task<Jurisdiction> UpdateAsync(Jurisdiction jurisdiction);
-        Task<bool> DeleteAsync(Guid id);
     }
 }

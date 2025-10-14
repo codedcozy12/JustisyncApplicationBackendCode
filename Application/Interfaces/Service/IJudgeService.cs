@@ -5,6 +5,7 @@ namespace Application.Interfaces.Service
 {
     public interface IJudgeService
     {
+        Task<ResponseDto<string>> CheckIfCourtHasJudgeAsync(Guid courtId);
         Task<ResponseDto<Guid>> CreateJudgeAsync(JudgeCreateRequestDto request);
         Task<ResponseDto<JudgeDto>> GetJudgeByIdAsync(Guid judgeId);
         Task<ResponseDto<IEnumerable<JudgeDto>>> GetAllJudgesAsync();

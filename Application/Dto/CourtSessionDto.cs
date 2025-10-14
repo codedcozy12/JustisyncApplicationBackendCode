@@ -13,6 +13,10 @@ namespace Application.Dto
         public DateTime? StartTime { get; set; }
         public DateTime? EndTime { get; set; }
         public CourtSessionStatus Status { get; set; }
+        public string VirtualMeetingUrl { get; set; }
+        public string VirtualMeetingRoom { get; set; }
+        public DateTime MeetingJoinTime { get; set; }
+        public DateTime MeetingEndTime { get; set; }
         public List<CaseProceedingRecordDto>? Proceedings { get; set; }
     }
     public class CourtSessionCreateRequestDto
@@ -23,6 +27,7 @@ namespace Application.Dto
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }
         public CourtSessionStatus Status { get; set; }
+        public string VirtualMeetingRoom { get; set; } = default;
         public List<CaseProceedingRecordCreateDto>? Proceedings { get; set; }
     }
     public class CourtSessionUpdateRequestDto

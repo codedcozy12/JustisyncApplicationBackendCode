@@ -1,5 +1,6 @@
 ﻿using Application.Dto;
 using Application.Interfaces.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -19,6 +20,7 @@ namespace Host.Controllers.V1Controllers
             _courtService = courtService;
             _logger = logger;
         }
+        [Authorize]
         [HttpGet]
         [SwaggerOperation(Summary = "Get all jurisdictions", Description = "Retrieve a list of all jurisdictions in the system.")]
         public async Task<IActionResult> GetAllJurisdictions()
@@ -37,6 +39,7 @@ namespace Host.Controllers.V1Controllers
             }
             return Ok(result);
         }
+        [Authorize]
         [HttpGet("by-subject-matter")]
         [SwaggerOperation(Summary = "Get jurisdictions by subject matter", Description = "Retrieve jurisdictions that match a specific subject matter.")]
         public async Task<IActionResult> GetJurisdictionsBySubjectMatter([FromQuery] string subjectMatter)
@@ -44,6 +47,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _jurisdictionService.GetBySubjectMatterAsync(subjectMatter);
             return Ok(result);
         }
+        [Authorize(Roles = "admin")]
         [HttpPost]
         [SwaggerOperation(Summary = "Create a new jurisdiction", Description = "Add a new jurisdiction to the system.")]
         public async Task<IActionResult> CreateJurisdiction([FromBody] JurisdictionCreateRequestDto request)
@@ -55,6 +59,7 @@ namespace Host.Controllers.V1Controllers
             }
             return Ok(result);
         }
+        [Authorize(Roles = "admin")]
         [HttpPut("{jurisdictionId:guid}")]
         [SwaggerOperation(Summary = "Update jurisdiction details", Description = "Update the information of an existing jurisdiction.")]
         public async Task<IActionResult> UpdateJurisdiction(Guid jurisdictionId, [FromBody] JurisdictionUpdateRequestDto request)
@@ -70,19 +75,9 @@ namespace Host.Controllers.V1Controllers
             }
             return Ok(result);
         }
-        [HttpDelete("{jurisdictionId:guid}")]
-        [SwaggerOperation(Summary = "Delete jurisdiction", Description = "Remove a jurisdiction from the system by its unique Id.")]
-        public async Task<IActionResult> DeleteJurisdiction(Guid jurisdictionId)
-        {
-            var success = await _jurisdictionService.DeleteAsync(jurisdictionId);
-            if (!success)
-            {
-                return NotFound("Jurisdiction not found or already deleted.");
-            }
-            return Ok("Jurisdiction deleted successfully.");
-        }
-        [HttpPatch("Add jurisdiction to court")]
-        [SwaggerOperation(Summary = "Add jurisdiction to court", Description = "Associate a jurisdiction with a specific court.")]
+        [Authorize(Roles = "admin")]
+        [HttpPost("add-to-court/{courtId:guid}")]
+        [SwaggerOperation(Summary = "Add jurisdictions to a court", Description = "Associate one or more jurisdictions with a specific court.")]
         public async Task<IActionResult> AddJurisdictionToCourt(List<Guid> Ids, Guid courtId)
         {
             var result = await _jurisdictionService.AddJurisdictionToCourt(Ids, courtId);
@@ -92,7 +87,8 @@ namespace Host.Controllers.V1Controllers
             }
             return Ok(result);
         }
-            [HttpGet("by-court/{courtId:guid}")]
+        [Authorize]
+        [HttpGet("by-court/{courtId:guid}")]
             [SwaggerOperation(Summary = "Get jurisdictions by court", Description = "Retrieve a list of jurisdictions associated with a specific court.")]
             public async Task<IActionResult> GetJurisdictionsByCourt(Guid courtId)
             {

@@ -23,7 +23,6 @@ namespace Application.Dto
     }
     public class CaseCreateRequestDto
     {
-        public string CaseNumber { get; set; } = default!;
         public required string Title { get; set; }
         public Guid ClientId { get; set; }
         public Guid LawyerId { get; set; }
@@ -36,7 +35,6 @@ namespace Application.Dto
     public class CaseUpdateRequestDto
     {
         public Guid Id { get; set; }
-        public string? CaseNumber { get; set; }
         public Guid? LawyerId { get; set; }
         public Guid? JudgeId { get; set; }
         public OffenseType? OffenseType { get; set; }

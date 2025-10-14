@@ -17,16 +17,6 @@ namespace Infrastructures.Persistence.Repository
             _context.Jurisdictions.Add(jurisdiction);
             return jurisdiction;
         }
-
-        public async Task<bool> DeleteAsync(Guid id)
-        {
-            var jurisdiction = await _context.Jurisdictions.FindAsync(id);
-            if (jurisdiction == null)
-                return false;
-            _context.Jurisdictions.Remove(jurisdiction);
-            return true;
-        }
-
         public async Task<IEnumerable<Jurisdiction>> GetAllAsync()
         {
             return await _context.Jurisdictions.Include(a => a.Courts).ToListAsync();

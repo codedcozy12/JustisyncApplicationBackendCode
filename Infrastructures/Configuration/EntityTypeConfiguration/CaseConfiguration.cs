@@ -58,7 +58,7 @@ namespace JustiSync.Infrastructure.Configurations
                 .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(c => c.Registrar)
-                .WithMany()
+                .WithMany(a => a.Cases)
                 .HasForeignKey(c => c.RegistrarId)
                 .OnDelete(DeleteBehavior.Restrict);
 

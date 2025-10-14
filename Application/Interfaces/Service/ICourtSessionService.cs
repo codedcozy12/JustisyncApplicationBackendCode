@@ -10,5 +10,7 @@ public interface ICourtSessionService
         Task<ResponseDto<IEnumerable<CourtSessionDto>>> GetByCaseIdAsync(Guid caseId);
         Task<ResponseDto<IEnumerable<CourtSessionDto>>> GetByCourtIdAsync(Guid courtId);
         Task<ResponseDto<IEnumerable<CourtSessionDto>>> GetUpcomingSessionsAsync(DateTime from, DateTime to);
+        Task<ResponseDto<CourtSessionDto>> StartVirtualSessionAsync(Guid sessionId);
+        Task<ResponseDto<CourtSessionDto>> EndCourtSessionAsync(Guid sessionId);
     }
 }

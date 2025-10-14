@@ -11,6 +11,5 @@ namespace Application.Interfaces.Service
         Task<ResponseDto<Guid>> CreateAsync(JurisdictionCreateRequestDto dto);
         Task<ResponseDto<Guid>> UpdateAsync(JurisdictionUpdateRequestDto dto);
         Task<ResponseDto<Guid>> AddJurisdictionToCourt(List<Guid> Ids,Guid courtId);
-        Task<bool> DeleteAsync(Guid id);
     }
 }

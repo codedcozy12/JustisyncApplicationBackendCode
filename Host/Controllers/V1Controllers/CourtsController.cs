@@ -1,6 +1,7 @@
 ﻿using Application.Dto;
 using Application.Interfaces.AuthService;
 using Application.Interfaces.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
@@ -21,6 +22,7 @@ namespace Host.Controllers.V1Controllers
             _logger = logger;
             _authService = authService;
         }
+        [Authorize(Roles = "admin")]
         [HttpPost]
         [SwaggerOperation(Summary = "Create a new court", Description = "Registers a new court in the system.")]
         public async Task<IActionResult> CreateCourt([FromForm] CourtCreateRequestDto request)
@@ -28,6 +30,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _courtService.CreateCourtAsync(request);
             return Ok(result);
         }
+        [Authorize]
         [HttpGet]
         [SwaggerOperation(Summary = "Get all courts", Description = "Retrieves a list of all courts in the system.")]
         public async Task<IActionResult> GetAllCourts()
@@ -35,6 +38,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _courtService.GetAllCourtsAsync();
             return Ok(result);
         }
+        [Authorize]
         [HttpGet("active")]
         [SwaggerOperation(Summary = "Get all active courts", Description = "Retrieves a list of all active courts in the system.")]
         public async Task<IActionResult> GetActiveCourts()
@@ -42,6 +46,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _courtService.GetActiveCourtsAsync();
             return Ok(result);
         }
+        [Authorize]
         [HttpGet("{courtId:guid}")]
         [SwaggerOperation(Summary = "Get court by Id", Description = "Retrieves details of a court by their unique Id.")]
         public async Task<IActionResult> GetCourtById(Guid courtId)
@@ -49,6 +54,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _courtService.GetCourtByIdAsync(courtId);
             return Ok(result);
         }
+        [Authorize(Roles = "admin")]
         [HttpPut("{courtId:guid}")]
         [SwaggerOperation(Summary = "Update court details", Description = "Updates the information of an existing court.")]
         public async Task<IActionResult> UpdateCourt(Guid courtId, [FromBody] CourtUpdateRequestDto request)
@@ -56,6 +62,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _courtService.UpdateCourtAsync(courtId, request);
             return Ok(result);
         }
+        [Authorize(Roles = "admin")]
         [HttpDelete("{courtId:guid}")]
         [SwaggerOperation(Summary = "Delete court", Description = "Deletes a court by their unique Id.")]
         public async Task<IActionResult> DeleteCourt(Guid courtId)

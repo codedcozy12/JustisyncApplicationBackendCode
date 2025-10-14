@@ -39,8 +39,7 @@ namespace Application.Dto
     }
     public class AssignJudgeRequestDto
     {
-        public Guid JudgeId { get; set; }
         public Guid CourtId { get; set; }
-        public DateTime? AppointmentDate { get; set; }
+        public Guid JudgeId { get; set; }
     }
 }

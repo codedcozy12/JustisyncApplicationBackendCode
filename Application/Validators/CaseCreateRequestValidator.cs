@@ -8,9 +8,6 @@ namespace Application.Validators
     {
         public CaseCreateRequestValidator() 
         {
-            RuleFor(c => c.CaseNumber)
-            .NotEmpty().WithMessage("Case number is required.")
-            .MaximumLength(50).WithMessage("Case number must not exceed 50 characters.");
 
         RuleFor(c => c.ClientId)
             .NotEmpty().WithMessage("Client ID is required. A case must be filed by a client.");
@@ -34,9 +31,9 @@ namespace Application.Validators
         RuleFor(c => c.Status)
             .IsInEnum().WithMessage("Invalid case status value.");
 
-        RuleForEach(c => c.Parties)
-            .SetValidator(new CasePartyCreateDtoValidator()!)
-            .When(c => c.Parties != null && c.Parties.Any(), ApplyConditionTo.CurrentValidator);
+        //RuleForEach(c => c.Parties)
+        //    .SetValidator(new CasePartyCreateDtoValidator()!)
+        //    .When(c => c.Parties != null && c.Parties.Any(), ApplyConditionTo.CurrentValidator);
         }
     }
 }

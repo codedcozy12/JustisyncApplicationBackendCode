@@ -65,6 +65,17 @@ namespace Application.Service
         public async Task<ResponseDto<AiConversationSessionDto>> GetSessionByIdAsync(Guid sessionId)
         {
             var session = await _aiConversationSessionRepository.GetByIdAsync(sessionId);
+            var filteredSession = session?.IsDeleted == false ? session : null;
+            if (filteredSession == null)
+            {
+                _logger.LogWarning("AI Conversation Session with Id: {SessionId} not found or is deleted", sessionId);
+                return new ResponseDto<AiConversationSessionDto>
+                {
+                    IsSuccess = false,
+                    Message = "AI Conversation Session not found or is deleted",
+                    Data = null
+                };
+            }
             if (session == null)
             {
                 _logger.LogWarning("AI Conversation Session with Id: {SessionId} not found", sessionId);

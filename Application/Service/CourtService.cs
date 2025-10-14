@@ -4,6 +4,7 @@ using Application.Interfaces.Service;
 using Application.Interfaces.UnitOfWork;
 using Domain.Entities;
 using Domain.Enums;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 
 namespace Application.Service
@@ -146,6 +147,18 @@ namespace Application.Service
         public async Task<ResponseDto<IEnumerable<CourtDto>>> GetAllCourtsAsync()
         {
             var courts = await _courtRepository.GetAllAsync();
+            var filteredCourts = courts.Where(c => !c.IsDeleted).ToList();
+            courts = filteredCourts;
+            if (filteredCourts.Count == 0)
+            {
+                _logger.LogInformation("No Courts found");
+                return new ResponseDto<IEnumerable<CourtDto>>
+                {
+                    Data = Enumerable.Empty<CourtDto>(),
+                    IsSuccess = true,
+                    Message = "No Court found"
+                };
+            }
             if (courts == null)
             {
                 _logger.LogInformation("No Courts found");
@@ -182,7 +195,7 @@ namespace Application.Service
         public async Task<ResponseDto<CourtDto>> GetCourtByIdAsync(Guid courtId)
         {
             var court = await _courtRepository.GetByIdAsync(courtId);
-            if (court == null)
+            if (court == null || court.IsDeleted)
             {
                 _logger.LogWarning("Court not found with Id: {CourtId}", courtId);
                 return new ResponseDto<CourtDto> 

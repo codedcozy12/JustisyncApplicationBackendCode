@@ -93,6 +93,15 @@ namespace Application.Service
             _logger.LogInformation("Retrieving chat with Id: {ChatId}", chatId);
 
             var chat = await _chatRepository.GetChatByIdAsync(chatId);
+            if (chat is null)
+            {
+                _logger.LogWarning("Chat with Id: {ChatId} is deleted", chatId);
+                return new ResponseDto<ChatDto>
+                {
+                    IsSuccess = false,
+                    Message = "Chat not found."
+                };
+            }
 
             if (chat is null)
             {

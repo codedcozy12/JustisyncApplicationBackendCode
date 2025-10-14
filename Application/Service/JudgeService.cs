@@ -34,10 +34,30 @@ namespace Application.Service
             _auditLogService = auditLogService;
             _courtRepository = courtRepository;
         }
+        public async Task<ResponseDto<string>> CheckIfCourtHasJudgeAsync(Guid courtId)
+        {
+            var court = await _courtRepository.GetByIdAsync(courtId);
+            if (court == null)
+            {
+                _logger.LogWarning("Court with Id: {CourtId} not found", courtId);
+                return ResponseDto<string>.Fail($"Court with Id: {courtId} not found");
+            }
+
+            
+            var existingActiveJudge = await _judgeRepository.GetJudgeByCourtIdAsync(courtId);
+            if (existingActiveJudge != null)
+            {
+                _logger.LogWarning("Court with Id: {CourtId} already has an active judge.", courtId);
+                return ResponseDto<string>.Fail("A judge is already assigned to this court. Please remove the current judge before assigning a new one.");
+            }
+
+            _logger.LogInformation("No active judge found for Court with Id: {CourtId}", courtId);
+            return ResponseDto<string>.Success("No Judge Is Present In This Court.");
+        }
         public async Task<ResponseDto<JudgeUpdateRequestDto>> AssignJudgeToCourtAsync(AssignJudgeRequestDto dto)
         {
             var judge = await _judgeRepository.GetByIdAsync(dto.JudgeId);
-            if (judge == null)
+            if (judge == null || judge.IsDeleted == true)
             {
                 _logger.LogWarning("Judge with Id: {JudgeId} not found", dto.JudgeId);
                 return ResponseDto<JudgeUpdateRequestDto>.Fail($"Judge with Id: {dto.JudgeId} not found");
@@ -50,15 +70,21 @@ namespace Application.Service
                 return ResponseDto<JudgeUpdateRequestDto>.Fail($"Court with Id: {dto.CourtId} not found");
             }
 
-            
+
             var existingActiveJudge = await _judgeRepository.GetJudgeByCourtIdAsync(dto.CourtId);
             if (existingActiveJudge != null)
             {
+                if(existingActiveJudge.IsDeleted == true)
+                {
+                    existingActiveJudge.JudgeCourts.FirstOrDefault(a => a.CourtId == dto.CourtId && a.IsActive == true)!.IsActive = false;
+                    await _judgeRepository.UpdateAsync(existingActiveJudge);
+                    await _unitOfWork.SaveChangesAsync();
+                }
                 _logger.LogWarning("Court with Id: {CourtId} already has an active judge.", dto.CourtId);
                 return ResponseDto<JudgeUpdateRequestDto>.Fail("A judge is already assigned to this court. Please remove the current judge before assigning a new one.");
             }
 
-            
+
             bool isJudgeActiveElsewhere = judge.JudgeCourts.Any(jc => jc.IsActive);
             if (isJudgeActiveElsewhere)
             {
@@ -66,7 +92,7 @@ namespace Application.Service
                 return ResponseDto<JudgeUpdateRequestDto>.Fail("This judge is already assigned to another active court.");
             }
 
-          
+
             var judgeCourt = new JudgeCourt
             {
                 JudgeId = dto.JudgeId,
@@ -76,7 +102,7 @@ namespace Application.Service
             };
 
             judge.JudgeCourts.Add(judgeCourt);
-            judge.AppointmentDate = dto.AppointmentDate;
+            judge.AppointmentDate = DateTime.UtcNow;
 
             await _judgeRepository.UpdateAsync(judge);
             await _unitOfWork.SaveChangesAsync();
@@ -86,7 +112,7 @@ namespace Application.Service
             return ResponseDto<JudgeUpdateRequestDto>.Success(new JudgeUpdateRequestDto
             {
                 CourtAssignedId = dto.CourtId,
-                AppointmentDate = dto.AppointmentDate
+                AppointmentDate = DateTime.UtcNow
             });
         }
 
@@ -114,6 +140,19 @@ namespace Application.Service
             if (existingJudge != null)
             {
                 return ResponseDto<Guid>.Fail("A judge is already assigned to this court. Please remove the current judge before assigning a new one.");
+            }
+
+            var court = await _courtRepository.GetByIdAsync(request.CourtAssignedId);
+            if (court == null)
+            {
+                _logger.LogWarning("Court with Id: {CourtId} not found", request.CourtAssignedId);
+                return ResponseDto<Guid>.Fail($"Court with Id: {request.CourtAssignedId} not found");
+            }
+
+            if(court.IsDeleted == true)
+            {
+                _logger.LogWarning("Court with Id: {CourtId} Is deleted found", request.CourtAssignedId);
+                return ResponseDto<Guid>.Fail($"Court with Id: {request.CourtAssignedId} not found");
             }
 
             var user = new User
@@ -159,6 +198,11 @@ namespace Application.Service
         public async Task<bool> DeleteJudgeAsync(Guid judgeId)
         {
             var judge = await _judgeRepository.GetByIdAsync(judgeId);
+            if (judge.JudgeCourts.FirstOrDefault(a => a.IsActive == true) != null)
+            {
+                _logger.LogWarning("Cannot delete Judge with Id: {JudgeId} as they are currently assigned to an active court", judgeId);
+                return false;
+            }
             if (judge == null)
             {
                 _logger.LogWarning("Judge with Id: {JudgeId} not found", judgeId);
@@ -181,6 +225,7 @@ namespace Application.Service
         public async Task<ResponseDto<IEnumerable<JudgeDto>>> GetAllJudgesAsync()
         {
             var judges = await _judgeRepository.GetAllAsync();
+            var filteredJudges = judges.Where(j => !j.IsDeleted).ToList();
             if (judges == null || !judges.Any())
             {
                 _logger.LogInformation("No judges found");
@@ -217,11 +262,10 @@ namespace Application.Service
                 Message = "Judges retrieved successfully"
             };
         }
-
         public async Task<ResponseDto<JudgeDto>> GetJudgeByIdAsync(Guid judgeId)
         {
             var judge = await _judgeRepository.GetByIdAsync(judgeId);
-            if (judge == null)
+            if (judge == null || judge.IsDeleted)
             {
                 _logger.LogWarning("Judge with Id: {JudgeId} not found", judgeId);
                 return new ResponseDto<JudgeDto>
@@ -257,6 +301,7 @@ namespace Application.Service
         public async Task<ResponseDto<IEnumerable<JudgeDto>>> GetJudgesByCourtAsync(Guid courtId)
         {
             var judges = await _judgeRepository.GetByCourtIdAsync(courtId);
+            var filteredJudges = judges.Where(j => !j.IsDeleted).ToList();
             if (judges == null || !judges.Any())
             {
                 _logger.LogInformation("No judges found for Court with Id: {CourtId}", courtId);

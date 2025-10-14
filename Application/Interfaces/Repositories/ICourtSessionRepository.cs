@@ -10,6 +10,7 @@ namespace Application.Interfaces.Repositories
         Task<IEnumerable<CourtSession>> GetByCaseAsync(Guid caseId);
         Task AddAsync(CourtSession courtSession);
         Task UpdateAsync(CourtSession courtSession);
+        Task<CourtSession?> GetByMeetingRoomAsync(string roomName);
         Task<IEnumerable<CourtSession>> GetUpcomingSessionsAsync(DateTime from, DateTime to);
     }
 }

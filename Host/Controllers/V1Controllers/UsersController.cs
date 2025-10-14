@@ -24,8 +24,8 @@ namespace Host.Controllers.V1Controllers
             _userService = userService;
         }
 
-        [SwaggerOperation(Summary = "Register a new user account")]
         [HttpPost("register")]
+        [SwaggerOperation(Summary = "Register a new user account")]
         public async Task<IActionResult> Register([FromForm] UserCreateRequestDto request)
         {
             if (request == null) return BadRequest("Invalid user data.");
@@ -34,9 +34,8 @@ namespace Host.Controllers.V1Controllers
 
             return Ok(result);
         }
-
-        [SwaggerOperation(Summary = "Login with email and password to receive authentication token")]
         [HttpPost("login")]
+        [SwaggerOperation(Summary = "Login with email and password to receive authentication token")]
         public async Task<IActionResult> Login([FromBody] UserLoginRequestDto request)
         {
             var result = await _userService.LoginAsync(request);
@@ -50,8 +49,8 @@ namespace Host.Controllers.V1Controllers
             });
         }
 
-        [SwaggerOperation(Summary = "Request a password reset link by email")]
         [HttpPost("forgot-password")]
+        [SwaggerOperation(Summary = "Request a password reset link by email")]
         public async Task<IActionResult> ForgotPassword([FromBody] UserForgotPasswordRequestDto request)
         {
             if (request == null) return BadRequest("Invalid request data.");
@@ -61,7 +60,7 @@ namespace Host.Controllers.V1Controllers
 
             return Ok("Password reset link sent to your email.");
         }
-
+        
         [HttpPost("verify-forget-password-code")]
         [SwaggerOperation(Summary = "Verify Forget Password Code",
                    Description = "Verifies the token sent to the user's email for resetting password.")]
@@ -83,9 +82,8 @@ namespace Host.Controllers.V1Controllers
             return Ok(result);
         }
 
-        [SwaggerOperation(Summary = "Reset password using the reset token")]
-        [Authorize]
         [HttpPost("reset-password")]
+        [SwaggerOperation(Summary = "Reset password using the reset token")]
         public async Task<IActionResult> ResetPassword([FromBody] UserResetPasswordRequestDto request)
         { 
             var result = await _userService.ResetPasswordAsync(request);
@@ -113,8 +111,7 @@ namespace Host.Controllers.V1Controllers
 
             return Ok(result);
         }
-
-        
+        [Authorize(Roles = "admin")]
         [HttpGet("all")]
         [SwaggerOperation(Summary = "Retrieve all users with optional filters and pagination")]
         public async Task<IActionResult> GetAllUsers([FromQuery] PageRequest request)
@@ -126,8 +123,8 @@ namespace Host.Controllers.V1Controllers
             return Ok(result);
         }
 
-        [SwaggerOperation(Summary = "Update user details by ID")]
         [HttpPut("{id}")]
+        [SwaggerOperation(Summary = "Update user details by ID")]
         public async Task<IActionResult> UpdateUser(Guid id, [FromBody] UserUpdateRequestDto request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
@@ -138,8 +135,9 @@ namespace Host.Controllers.V1Controllers
 
             return Ok(result);
         }
-        [SwaggerOperation(Summary = "Send email confirmation code to user's email")]
+
         [HttpPost("send-email-confirmation-code")]
+        [SwaggerOperation(Summary = "Send email confirmation code to user's email")]
         public async Task<IActionResult> SendEmailConfirmationCode([FromBody] string email)
         {
             if (string.IsNullOrEmpty(email))
@@ -160,7 +158,7 @@ namespace Host.Controllers.V1Controllers
                 return BadRequest(result?.Message ?? "Failed to confirm email.");
             return Ok(result);
         }
-
+        [Authorize(Roles = "admin")]
         [SwaggerOperation(Summary = "Get The Users Statistics")]
         [HttpGet("stats")]
         public async Task<IActionResult> GetStats()

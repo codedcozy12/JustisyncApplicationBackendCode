@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces.Service;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Annotations;
 
@@ -16,11 +17,12 @@ namespace Host.Controllers.V1Controllers
             _casePartyService = casePartyService;
             _logger = logger;
         }
+        [Authorize(Roles = "client")]
         [HttpPost]
         [SwaggerOperation(Summary = "Add case party", Description = "Adds a new party to a specific case.")]
-        public async Task<IActionResult> AddCaseParty([FromBody] CasePartyCreateDto newParty, [FromQuery] Guid createdBy)
+        public async Task<IActionResult> AddCaseParty([FromBody] CasePartyCreateDto newParty)
         {
-            var result = await _casePartyService.AddCasePartyAsync(newParty, createdBy);
+            var result = await _casePartyService.AddCasePartyAsync(newParty);
             if (!result.IsSuccess)
                 return BadRequest(result);
             return CreatedAtAction(
@@ -29,6 +31,7 @@ namespace Host.Controllers.V1Controllers
                 result
             );
         }
+        [Authorize]
         [HttpGet("case/{caseId:guid}")]
         [SwaggerOperation(Summary = "Get case parties by case ID", Description = "Retrieves all parties associated with a specific case.")]
         public async Task<IActionResult> GetCasePartiesByCaseId(Guid caseId)
@@ -36,6 +39,7 @@ namespace Host.Controllers.V1Controllers
             var result = await _casePartyService.GetCasePartiesByCaseIdAsync(caseId);
             return Ok(result);
         }
+        [Authorize]
         [HttpGet("{casePartyId:guid}")]
         [SwaggerOperation(Summary = "Get case party by ID", Description = "Retrieves the details of a specific case party by its unique identifier.")]
         public async Task<IActionResult> GetCasePartyById(Guid casePartyId)
@@ -45,6 +49,7 @@ namespace Host.Controllers.V1Controllers
                 return NotFound(result);
             return Ok(result);
         }
+        [Authorize(Roles = "client")]
         [HttpPut("update")]
         [SwaggerOperation(Summary = "Update case party", Description = "Updates the details of an existing case party.")]
         public async Task<IActionResult> UpdateCaseParty([FromBody] CasePartyUpdateDto updatedParty, Guid modifiedBy)

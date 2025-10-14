@@ -133,7 +133,6 @@ namespace Application.Service
                 return ResponseDto<CaseDto>.Fail("No judge assigned to the selected court");
             }
 
-
             string path = "";
             if (document.FileUrl != null)
             {
@@ -166,6 +165,14 @@ namespace Application.Service
                 {
                     ClientId = caseEntity.ClientId,
                     CaseNumber = caseEntity.CaseNumber,
+                    CourtId = caseEntity.CourtId,
+                    JudgeId = caseEntity.JudgeId,
+                    LawyerId = caseEntity.LawyerId,
+                    OffenseLocation = caseEntity.OffenseLocation,
+                    OffenseType = caseEntity.OffenseType,
+                    Title = caseEntity.Title,
+                    CreatedAt = caseEntity.DateCreated,
+                    Status = CaseStatus.Filed,
                     Description = Description
                 }
             };
@@ -284,7 +291,7 @@ namespace Application.Service
 
             var caseEntity = new Case
             {
-                CaseNumber = newCase.CaseNumber,
+                CaseNumber = $"Case-{new Random().Next(111111,999999)}",
                 Title = newCase.Title,
                 ClientId = clientId,
                 LawyerId = newCase.LawyerId,
@@ -300,6 +307,7 @@ namespace Application.Service
             {
                 caseEntity.CaseParties = newCase.Parties.Select(p => new CaseParty
                 {
+                    CaseId = caseEntity.Id,
                     FullName = p.FullName,
                     ContactPhone = p.Contact,
                     ContactEmail = p.Email
@@ -323,7 +331,7 @@ namespace Application.Service
                 Message = "Case initiated successfully.",
                 Data = new CaseDto
                 {
-                    CaseNumber = newCase.CaseNumber,
+                    CaseNumber = $"Case-{new Random().Next(111111, 999999)}",
                     Title = newCase.Title,
                     LawyerId = newCase.LawyerId,
                     CourtId = caseEntity.CourtId,
@@ -425,6 +433,8 @@ namespace Application.Service
                 CaseNumber = c.CaseNumber,
                 ClientId = c.ClientId,
                 LawyerId = c.LawyerId,
+                Title = c.Title,
+                DocumentIds = c.Documents.Select(a => a.Id).ToList(),
                 CourtId = c.CourtId,
                 JudgeId = c.JudgeId,
                 OffenseType = c.OffenseType,

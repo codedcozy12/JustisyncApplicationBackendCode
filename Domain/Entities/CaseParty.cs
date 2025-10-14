@@ -4,7 +4,7 @@ namespace Domain.Entities
 {
     public class CaseParty
     {
-        public Guid Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
         public Guid CaseId { get; set; }
         public PartyRole Role { get; set; }
         public Guid? UserId { get; set; }

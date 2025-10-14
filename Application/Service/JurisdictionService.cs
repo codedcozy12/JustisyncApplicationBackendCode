@@ -97,24 +97,6 @@ namespace Application.Service
                 };
             }
         }
-        public async Task<bool> DeleteAsync(Guid id)
-        {
-            var result = await _jurisdictionRepository.GetByIdAsync(id);
-            if (result == null)
-            {
-
-                _logger.LogWarning("Jurisdiction with ID {Id} not found for deletion.", id);
-                return false;
-            }
-            var deleteResult = await _jurisdictionRepository.UpdateAsync(result);
-            if (deleteResult == null)
-            {
-                _logger.LogError("Failed to delete jurisdiction with ID {Id}.", id);
-                return false;
-            }
-            await _unitOfWork.SaveChangesAsync();
-            return true;
-        }
         public async Task<IEnumerable<ResponseDto<JurisdictionDto>>> GetAllAsync()
         {
             var jurisdictions = await _jurisdictionRepository.GetAllAsync();

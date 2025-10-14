@@ -124,6 +124,7 @@ namespace Application.Service
         public async Task<ResponseDto<IEnumerable<RegistrarDto>>> GetAllRegistrarsAsync()
         {
             var registrars = await _registrarRepository.GetAllAsync();
+            var activeRegistrars = registrars.Where(r => !r.IsDeleted).ToList();
 
             if (registrars == null || !registrars.Any())
             {

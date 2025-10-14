@@ -22,7 +22,7 @@ namespace Infrastructures.Service.Auth
             new Claim("UserId", userDto.Id.ToString()),
             new Claim("Email", userDto.Email),
             new Claim("Username", userDto.Username),
-            new Claim("Role", userDto.Role.ToString())
+            new Claim("role", userDto.Role.ToString())
         };
 
             var token = new JwtSecurityToken(

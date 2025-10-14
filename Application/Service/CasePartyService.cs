@@ -21,7 +21,7 @@ namespace Application.Service
             _logger = logger;
             _unitOfWork = unitOfWork;
         }
-        public async Task<ResponseDto<CasePartyCreateDto>> AddCasePartyAsync(CasePartyCreateDto newParty, Guid createdBy)
+        public async Task<ResponseDto<CasePartyCreateDto>> AddCasePartyAsync(CasePartyCreateDto newParty)
         {
             var caseEntity = await _caseRepository.GetCaseByIdAsync(newParty.CaseId!.Value);
             if (caseEntity == null)
@@ -30,7 +30,6 @@ namespace Application.Service
             var party = new CaseParty
             {
                 Id = Guid.NewGuid(),
-                CaseId = newParty.CaseId.Value,
                 FullName = newParty.FullName,
                 ContactEmail = newParty.Email,
                 Role = newParty.Role,
